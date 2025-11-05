@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+
+'''
+
+'''
+
+from pystac_client import Client
+from datetime import datetime, timedelta
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-22T00:00:00Z')
+@click.option('--end', '-e',                                             help = 'datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-23T00:00:00Z')
+@click.option('--type', '-t',                                            help = 'API productType filter', default = 'S2_RAW__0S')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+
+def query_datatakes(start: str, end: str, type: str, version: bool, silent: bool, debug: bool):
+    str_datetime_start  = start
+    str_datetime_end    = end
+    date_format         = '%Y-%m-%dT%H:%M:%SZ'
+    time_delta          = timedelta(hours = 1)
+    datetime_start      = datetime.strptime(str_datetime_start, date_format)
+    datetime_end        = datetime.strptime(str_datetime_end, date_format)
+    datetime_current    = datetime_start
+    list_datatake_id    = []
+
+    while datetime_current < datetime_end:
+        start = datetime_current
+        datetime_current += time_delta
+        end   = datetime_current
+        list_datatake_id += query_biomass_products(start, end, type, debug)
+
+    list_datatake_id = list(dict.fromkeys(list_datatake_id))
+
+    for datatake_id in list_datatake_id:
+        print(f'{datatake_id}')
+
+
+def query_biomass_products(datetime_start: datetime, datetime_end: datetime, type: str, debug = False):
+    date_format        = '%Y-%m-%dT%H:%M:%SZ'
+    str_datetime_start = datetime_start.strftime(date_format)
+    str_datetime_end   = datetime_end.strftime(date_format)
+    URL_LANDING_PAGE   = 'https://catalog.maap.eo.esa.int/catalogue/'
+    api                = Client.open(URL_LANDING_PAGE) 
+    if debug == True:
+        logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products')
+    BIO_COLLECTIONS = ['BiomassLevel0IOC', 'BiomassLevel1aIOC', 'BiomassLevel1bIOC']
+    results = api.search(
+        method      = "GET",
+        collections = BIO_COLLECTIONS,
+        filter      = f"productType='{type}'",
+        datetime    = [datetime_start, datetime_end]
+    )
+    items = list(results.items())
+    
+    if len(items) == 0:
+        if debug == True:
+            logger.debug(f'No items found between {str_datetime_start} and {str_datetime_end}')
+        return []
+    
+    items.sort( key = lambda x : x.properties['start_datetime'] )
+    list_item_id     = []
+    list_datatake_id = []
+
+    for item in items:
+        list_item_id.append(item.id)
+        # print(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {item.properties['eopf:datatake_id']}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
+        if item.properties['eopf:datatake_id'] not in list_datatake_id:
+            if debug:
+                logger.debug(f"datatake#{item.properties['eopf:datatake_id']}")
+            list_datatake_id.append(item.properties['eopf:datatake_id'])
+    return list_datatake_id
+
+
+if __name__ == '__main__':
+    query_datatakes()
+
+
+exit(0)
