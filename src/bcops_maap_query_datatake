@@ -3,13 +3,14 @@
 '''
 
 '''
-
+import os
 from pystac_client import Client
 from datetime import datetime, timedelta
 
 from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
+from importlib.metadata import version as package_version
 
 import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
@@ -24,6 +25,10 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 
 def query_datatakes(start: str, end: str, type: str, version: bool, silent: bool, debug: bool):
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
     str_datetime_start  = start
     str_datetime_end    = end
     date_format         = '%Y-%m-%dT%H:%M:%SZ'
@@ -80,6 +85,9 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
             list_datatake_id.append(item.properties['eopf:datatake_id'])
     return list_datatake_id
 
+
+def version():
+    return package_version('bcops')
 
 if __name__ == '__main__':
     query_datatakes()
