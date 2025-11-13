@@ -24,6 +24,17 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 
 def query_product(id: str, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Query MAAP catalogue for product metadata extraction.
+
+    Product catalogue metadata information and hierarchy is returned in JSON format.     
+    \b
+
+    """    
+
+
     if version == True:
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
         exit(0)

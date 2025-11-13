@@ -4,8 +4,10 @@
 
 '''
 import os
+import csv as csv_file
 from pystac_client import Client
 from datetime import datetime, timedelta
+import pytz
 
 from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
@@ -23,16 +25,32 @@ list_datatake_id    = []
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-22T00:00:00Z')
 @click.option('--end', '-e',                                             help = 'datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-23T00:00:00Z')
 @click.option('--type', '-t',                                            help = 'API productType filter S1_RAW__0S | S2_RAW__0S | S3_RAW__0S', default = 'S2_RAW__0S')
+@click.option('--CSV', '-C',         is_flag = True, default = False,    help = 'Output results to CSV file')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
 @click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
 @click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
 
 
-def query_datatakes(start: str, end: str, type: str, version: bool, silent: bool, debug: bool):
+def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Query MAAP catalogue for data take visibility information for a given time interval and product type.
+
+    CSV file naming convention is:
+        bcops_maap_query_datatake_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
+
+    CSV file format is:
+        datatake_id, product_type, product_id, sensing_start, sensing_end     
+    \b
+
+    """    
+
     if version == True:
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
         exit(0)
 
+    csv_writer          = None
     str_datetime_start  = start
     str_datetime_end    = end
     date_format         = '%Y-%m-%dT%H:%M:%SZ'
@@ -41,13 +59,30 @@ def query_datatakes(start: str, end: str, type: str, version: bool, silent: bool
     datetime_start      = datetime.strptime(str_datetime_start, date_format)
     datetime_end        = datetime.strptime(str_datetime_end, date_format)
     datetime_current    = datetime_start
+
+    datetime_now        = datetime.now(pytz.utc)
+    filename            = f'bcops_maap_query_datatake_{type}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
+    
+    if debug == True and csv == True:
+        logger.debug(f'CSV output file: {filename}')
+    
+    if csv == True:
+        file_handler        = open(filename, mode = 'w', newline = '')  
+        csv_writer          = csv_file.writer(file_handler, delimiter = ',')
+        header              = ['datatake_id', 'product_type', 'product_id', 'sensing_start', 'sensing_end']
+        csv_writer.writerow(header)
+  
+
     list_datatake_id    = []
 
     while datetime_current < datetime_end:
         start = datetime_current
         datetime_current += time_delta
         end   = datetime_current
-        list_datatake_id += query_biomass_products(start, end, type, debug)
+        list_datatake_id += query_biomass_products(start, end, type, csv_writer, debug)
+
+    if csv == True:
+        file_handler.close()
 
     list_datatake_id = list(dict.fromkeys(list_datatake_id))
 
@@ -55,7 +90,7 @@ def query_datatakes(start: str, end: str, type: str, version: bool, silent: bool
         print(f'{datatake_id}')
 
 
-def query_biomass_products(datetime_start: datetime, datetime_end: datetime, type: str, debug = False):
+def query_biomass_products(datetime_start: datetime, datetime_end: datetime, type: str, csv_writer = None, debug = False):
     date_format        = '%Y-%m-%dT%H:%M:%SZ'
     str_datetime_start = datetime_start.strftime(date_format)
     str_datetime_end   = datetime_end.strftime(date_format)
@@ -93,6 +128,17 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
         
         if debug == True:
             logger.debug(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {item.properties['eopf:datatake_id']}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
+
+
+        if csv_writer is not None:
+            row = [
+                item.properties['eopf:datatake_id'],
+                item.properties['product:type'],
+                item.id,
+                item.properties['start_datetime'],
+                item.properties['end_datetime']
+            ]
+            csv_writer.writerow(row)
 
         current_datatake_id = item.properties['eopf:datatake_id']
         current_start       = datetime.strptime(item.properties['start_datetime'], date_format_ms)

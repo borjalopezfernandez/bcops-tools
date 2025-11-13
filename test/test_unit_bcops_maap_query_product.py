@@ -17,9 +17,9 @@ def print_separator():
     logger.debug("\n=========================================================================")
 
 
-def test_version(print_separator):
+def test_options(print_separator):
     """
-    GIVEN test_conversion
+    GIVEN
     WHEN 
     THEN
     """
@@ -28,6 +28,12 @@ def test_version(print_separator):
     logger.info(cmd)
     exit = os.system(cmd)
     assert(exit == 0)
+
+    cmd             = f'bcops_maap_query_product --help'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
