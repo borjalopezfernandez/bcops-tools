@@ -55,8 +55,9 @@ def test(context):
     '''
     Execution of unit tests:
     '''
-    test_unit_bcops_maap_query_product(context)
+    test_unit_bcops_bmpf_afunav(context)
     test_unit_bcops_maap_query_datatake(context)
+    test_unit_bcops_bmpf_afunav(context)
     
     
 @task
@@ -70,10 +71,20 @@ def test_unit_bcops_maap_query_datatake(context):
 
 
 @task
-def test_unit_bcops_maap_query_product(context):
+def test_unit_bcops_bmpf_afunav(context):
     '''
     Execution of unit test main_test_unit_bcops_product.py 
     '''
-    cmd = 'pytest -rpf -s test/test_unit_bcops_maap_query_product.py'
+    cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_afunav.py'
+    logger.info(cmd)
+    context.run(cmd)
+
+
+@task
+def test_unit_bcops_bmpf_afunav(context):
+    '''
+    Execution of unit test main_test_unit_bcops_bmpf_afunav.py 
+    '''
+    cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_afunav.py'
     logger.info(cmd)
     context.run(cmd)

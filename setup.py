@@ -8,14 +8,17 @@ setup(
     license_files           =   ['LICENSE'],
     python_requires         =   ">3.11",       # only applies to sdist
     name                    =   "bcops",
-    version                 =   "0.0.4",
+    version                 =   "0.0.5",
     description             =   "BCOPS tools",
-    package_dir             =   {"": "src"},
+    package_dir             =   {"bcops": "src/bcops"},
+    package_data            =   {'bcops': ['data/*']},
+    include_package_data    =   True,
     scripts                 =   [
-                                    'src/bcops_maap_query_datatake',
-                                    'src/bcops_maap_query_product'
+                                    'src/bcops/bcops_bmpf_afunav',
+                                    'src/bcops/bcops_maap_query_datatake',
+                                    'src/bcops/bcops_maap_query_product'
                                  ],
-    install_requires        =   ['pytest', 'loguru', 'click', 'pystac_client'],
+    install_requires        =   ['pytest', 'loguru', 'click', 'pystac_client', 'pytz'],
     extras_require          =   {},
 )
 
