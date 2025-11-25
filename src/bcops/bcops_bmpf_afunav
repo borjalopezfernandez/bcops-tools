@@ -57,8 +57,8 @@ import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
-@click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-22T00:00:00Z')
-@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-23T00:00:00Z')
+@click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-22T00:00:00')
+@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-23T00:00:00')
 @click.option('--station-id',                                            help = 'station id to create the AF unavailability')
 @click.option('--rel-orbit', '-o',                                       help = 'relative orbit number to create the AF unavailability')
 @click.option('--list', '-l',        is_flag = True, default = False,    help = 'list all X-band ground stations')
@@ -346,7 +346,7 @@ def create_station_unvailability_file(validity_start: datetime, validity_end: da
     creator                     = 'BCOPS'
     creator_version             = version()
     creation_date               = f'UTC={format_date_time_now}'
-    file_name                   = f'{mission_id}_{file_class}_{file_type}_{validity_start.strftime('%Y%m%dT%H%M%S')}_{validity_end.strftime('%Y%m%dT%H%M%S')}_{station_id}_{file_version_str}.EOF'
+    file_name                   = f'{mission_id}_{file_class}_{file_type}_{validity_start.strftime('%Y%m%dT%H%M%S')}_{validity_end.strftime('%Y%m%dT%H%M%S')}_{file_version_str}.EOF'
     utc_validity_start          = f'UTC={validity_start.strftime('%Y-%m-%dT%H:%M:%S')}'
     utc_validity_end            = f'UTC={validity_end.strftime('%Y-%m-%dT%H:%M:%S')}'
 
