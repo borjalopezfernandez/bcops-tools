@@ -25,20 +25,23 @@ from eocfi.constants import XF_HEADER_FORMAT_EOF
 
 from eocfi.api    import version as eocfi_version
 from eocfi.api_xo import xo_check_library_version
-from eocfi.api_xd import xd_read_station_id
-from eocfi.api_xd import xd_read_station
-from eocfi.api_xd import xd_read_osf
+from eocfi.api_xd import xd_read_zone
+from eocfi.api_xd import xd_read_zone_id
 from eocfi.api_xl import xl_model_init
 from eocfi.api_xl import xl_time_ref_init_file
 from eocfi.api_xl import xl_time_ascii_to_processing
 from eocfi.api_xl import xl_time_processing_to_ascii
+from eocfi.api_xl import xl_time_close
 from eocfi.api_xo import xo_orbit_init_file
 from eocfi.api_xo import xo_orbit_get_val_time
 from eocfi.api_xo import xo_orbit_rel_from_abs
 from eocfi.api_xo import xo_orbit_close
 from eocfi.api_xo import xo_verbose
 from eocfi.api_xv import xv_swath_id_init
-from eocfi.api_xv import xv_stationvistime_compute
+from eocfi.api_xv import xv_zonevistime_compute
+from eocfi.api_xv import xv_swath_id_close
+
+from eocfi.api_xp import xp_atmos_init
 from eocfi.api_xf import xf_tree_create
 from eocfi.api_xf import xf_tree_create_root
 from eocfi.api_xf import xf_tree_create_header
@@ -48,6 +51,8 @@ from eocfi.api_xf import xf_tree_add_next_sibling
 from eocfi.api_xf import xf_tree_add_attribute
 from eocfi.api_xf import xf_tree_set_string_node_value
 from eocfi.api_xf import xf_tree_write
+from eocfi.constants import XV_FILE_STF
+from eocfi.constants import XP_STD_INIT
 
 from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
@@ -59,25 +64,20 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-22T00:00:00')
-@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-03-30T00:00:00')
-@click.option('--station-id',                                            help = 'station id to create the AF unavailability')
-@click.option('--rel-orbit', '-o',                                       help = 'relative orbit number to create the AF unavailability')
-@click.option('--list', '-l',        is_flag = True, default = False,    help = 'list all X-band ground stations')
+@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2025-10-23T00:00:00')
 @click.option('--config', '-c',      is_flag = True, default = False,    help = 'It shows the configuration')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
 @click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
 @click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
 
 
-def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list: bool, config: bool, version: bool, silent: bool, debug: bool):
+def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent: bool, debug: bool):
 
     """
     \b
-    Generate AF unavailability MPF_AFUNAV according to BIO-ESA-EOPG-EEGS-ID-0082.
+    Generate BCT passes / opportunies.
 
-    The specified X-band station is qualified by --station-id
-
-    Unavailability is generated for passes on the relative orbit of the repeat cycle qualified by --rel-orbit  
+    TBW
     \b
 
     """
@@ -95,96 +95,41 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
 
     file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
     file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'
-    file_gnd_db       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_GND_DB_00000000T000000_99999999T999999_STATIONS_0001.EOF'
     file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_GNDTRACK_0001.EOF' 
+    file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_BCT______0001.EOF'
+    zone_id           = 'BCT'
 
     if config == True:
-        print(file_gnd_db)
-        print(file_orbref)
-        print(file_swtssp)
-        print(file_orbsct)
+        logger.info(file_orbref)
+        logger.info(file_swtssp)
+        logger.info(file_orbsct)
+        logger.info(file_gndbct)
+        zone            = xd_read_zone(file_gndbct, zone_id, debug)
+        logger.info(zone)
         exit(0)
 
-   
     list_input_files = []
-    list_input_files.append(os.path.splitext(os.path.basename(file_gnd_db))[0])
+    list_input_files.append(os.path.splitext(os.path.basename(file_gndbct))[0])
     list_input_files.append(os.path.splitext(os.path.basename(file_orbref))[0])
     list_input_files.append(os.path.splitext(os.path.basename(file_swtssp))[0])
     list_input_files.append(os.path.splitext(os.path.basename(file_orbsct))[0])
 
-    if list == True and station_id != None:
-        print(f'Flag --List is incompatible with --station-id {station_id}')
-        exit(99)
-
-    if debug == True:
-        logger.info(f'xd_read_station_id => {file_gnd_db}')
-    list_station_id = xd_read_station_id(file_gnd_db)
-
-    if debug == True:
-        logger.info(f'xd_read_station {station_id}')
-
-    if list == True:
-        for station_id in list_station_id:
-            station_info = xd_read_station(file_gnd_db, station_id, debug)
-            logger.info(f'Ground Station: {station_info['station_id']}')
-            logger.info(station_info['antenna'])
-            logger.info(station_info['descriptor'])
-            logger.info(station_info['purpose'])
-            
-        exit(0)
-
-    if station_id == None:
-        print(f"Error: --station-id is mandatory")
-        exit(66)
-
-    if rel_orbit == None:
-        print(f"Error: --rel-orbit is mandatory")
-        exit(66)
-
-    if start == None:
-        print(f"Error: --start is mandatory")
-        exit(66)
-
-    if end == None:
-        print(f"Error: --end is mandatory")
-        exit(66)
-
-    if station_id not in list_station_id:
-        print(f'Error --station-id {station_id} not present in {file_gnd_db}')
-        exit(99)
-
-    station_info = xd_read_station(file_gnd_db, station_id, debug)
-    
-    if debug == True:
-        logger.info(station_info['station_id'])
-        logger.info(station_info['descriptor'])
-        logger.info(station_info['purpose'])
-        logger.info(station_info['antenna'])
-
-    try:
-        rel_orbit = int(rel_orbit)
-    except:
-        print('Error: rel-orbit must be an integer value')
+    if start is None or end is None:
+        print('Error: start and end datetime parameters are required')
         exit(1)
-
-    osf             = xd_read_osf(file_orbsct)
-    cycle_orbits    = int( osf[0]['cycle_orbits'] )
-
-    if rel_orbit > cycle_orbits:
-        print(f'Error --rel-orbit {rel_orbit} not in range between 1..{cycle_orbits}')
-        exit(99)
 
     str_datemjd2000_start  = start
     str_datemjd2000_end    = end
     date_format            = '%Y-%m-%dT%H:%M:%S'
-    
+    datemjd2000_start      = None
+    datemjd2000_end        = None
     
     try:
-        datetime.strptime(str_datemjd2000_start, date_format)
-        datetime.strptime(str_datemjd2000_end, date_format)
+        datemjd2000_start      = datetime.strptime(str_datemjd2000_start, date_format)
+        datemjd2000_end        = datetime.strptime(str_datemjd2000_end, date_format)
     except Exception as e:
         print(f'Error parsing input datetimes: {e}')
-        exit(99)
+        exit(1)
 
     # Variables for time conversion
     ascii_id_out        = XL_ASCII_CCSDSA
@@ -227,113 +172,78 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
 
     mjd2000_end = processing_out
 
-    if mjd2000_start > mjd2000_end:
-        print(f'Error --start: {start} cannot be later than --end {end}')
-        exit(99)
+    swath_mode      = XV_FILE_STF
+    atmos_init_mode = XP_STD_INIT
+    atmos_model     = 0
+    atmos_init_file = None
 
-    if debug == True:
-        logger.info(f'xl_model_init')
-    
-    xl_model_init(mode, debug)
-    
-    if debug == True:
-        logger.info(f'xl_time_ref_init_file {file_orbref}')
+    logger.info('xl_model_init')
+    xl_model_init(XL_MODEL_DEFAULT, debug)
+
+    logger.info(f'xl_time_ref_init_file => {file_orbref}')
+    xl_time_ref_init_file(file_orbref, debug)
+
+    logger.info(f'xo_orbit_init_file => {file_orbref}')
+    xo_orbit_init_file(file_orbref, debug)
+
+    logger.info('xp_atmos_init')
+    xp_atmos_init(atmos_init_mode, atmos_model, atmos_init_file, debug)
+
+    logger.info(f'xv_swath_id_init => {file_swtssp}')
+    xv_swath_id_init(swath_mode, file_swtssp, debug)
+ 
+    '''
+        One single zone 'BCT' is expected
+    '''
+    logger.info('xd_read_zone_id')
+    list_zone_id = xd_read_zone_id(file_gndbct, debug)
+    zone_id      = list_zone_id[0]
+
+    xd_read_zone(file_gndbct, zone_id, debug)
+
+    debug = False
+
+    logger.info(f'Processing zone {zone_id}')
+
+    list_zone_vis = []
+    logger.info(f'xv_zonevistime_compute => {zone_id}')
     try:
-        xl_time_ref_init_file(file_orbref, debug)
+        list_zone_vis = xv_zonevistime_compute(file_gndbct, zone_id, mjd2000_start, mjd2000_end, True)
     except Exception as error:
-        logger.error(f"Failed to init the time reference xl_time_ref_init_file with file {file_orbref}")
-        logger.error(error)
-        exit(99)
+        logger.error(f"Failed {zone_id}")
 
-    if debug == True:
-        logger.info(f'xo_verbose')
-        xo_verbose(debug)
+    for bct_vis in list_zone_vis:
+        start_orbit         = bct_vis['xv_time_interval']['tstart']['orbit_num']
+        start_utc_mjd_2000  = bct_vis['xv_time_interval']['tstart']['utc_time']
+        start_sec           = bct_vis['xv_time_interval']['tstart']['utc_time']
+        end_orbit           = bct_vis['xv_time_interval']['tstop']['orbit_num']
+        end_utc_mjd_2000    = bct_vis['xv_time_interval']['tstop']['utc_time']
+        end_sec             = bct_vis['xv_time_interval']['tstop']['utc_time']
+        duration            = end_sec - start_sec
 
-    if debug == True:
-        logger.info(f'xo_orbit_init_file {file_orbref}')
-    try:
-        xo_orbit_init_file(file_orbref, debug)
-    except Exception as error:
-        logger.error(f"Failed to init the orbit reference xo_orbit_init_file with file {file_orbref}")
-        logger.error(error)
-        if debug == True:
-            print(traceback.format_exc())
-        exit(99)
-    
-    if debug == True:
-        logger.info(f'xo_orbit_get_val_time')
-    xo_validity_time = xo_orbit_get_val_time(debug)
-    
-    if debug == True:
-        logger.info(xo_validity_time)
+        if duration != 0.0:
+            logger.warning('BCT visibility is made of single point which should have no duration')
 
-    if mjd2000_end > xo_validity_time['stop'] or mjd2000_start < xo_validity_time['start']:
-        logger.error(f'interval [{mjd2000_start},{mjd2000_end}] is out of range of orbit validity interval [{xo_validity_time['start']},{xo_validity_time['stop']}]')
-        exit(99)
-
-    if debug == True:
-        logger.info(f'xv_swath_id_init')
-    mode = XV_FILE_STF
-    xv_swath_id_init(mode, file_swtssp, debug)
-
-    if debug == True:
-        logger.info(f'xv_stationvistime_compute')
-    list_stationvistime = xv_stationvistime_compute(file_gnd_db, station_id, mjd2000_start, mjd2000_end, debug)
-
-    if debug == True:
-        logger.info(f'xo_orbit_close')
-
-    xo_orbit_close(debug)
-
-    if debug == True:
-        logger.info(f'xo_orbit_init_file {file_orbsct}')
-    try:
-        xo_orbit_init_file(file_orbsct, debug)
-    except Exception as error:
-        logger.error(f"Failed to init the orbit scenario xo_orbit_init_file with file {file_orbsct}")
-        logger.error(error)
-        if debug == True:
-            print(traceback.format_exc())
-        exit(99)
-
-    for xv_time_interval in list_stationvistime:
-        xv_time_start   = xv_time_interval['xv_time_interval']['tstart']
-        xv_time_stop    = xv_time_interval['xv_time_interval']['tstop']
-        xv_orbit_start  = xv_time_start['orbit_num']
-        xv_orbit_stop   = xv_time_stop['orbit_num']
-        
-        utc_time_start  = float(xv_time_start['utc_time'])
-        utc_time_stop   = float(xv_time_stop['utc_time'])
-
-        ascii_time_start = xl_time_processing_to_ascii(proc_id_in,
+        debug               = False
+        processing_in       = start_utc_mjd_2000
+        start_ascii_time    = xl_time_processing_to_ascii(proc_id_in,
                                               time_ref_in,
-                                              utc_time_start,
+                                              processing_in,
                                               ascii_id_out,
                                               time_ref_out,
                                               debug)
         
-        ascii_time_stop  = xl_time_processing_to_ascii(proc_id_in,
-                                              time_ref_in,
-                                              utc_time_stop,
-                                              ascii_id_out,
-                                              time_ref_out,
-                                              debug)
-        
-        rel_orbit_start = int(xo_orbit_rel_from_abs(xv_orbit_start)['rel_orbit'])
-        rel_orbit_stop  = int(xo_orbit_rel_from_abs(xv_orbit_stop)['rel_orbit'])
+        logger.debug(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit}')
 
-        date_start      = datetime.strptime(ascii_time_start, date_format)
-        date_end        = datetime.strptime(ascii_time_stop, date_format)
+    logger.info('xv_swath_id_close')
+    xv_swath_id_close()
 
-        if debug == True:
-            logger.info(f'tstart {ascii_time_start} {xv_orbit_start} {rel_orbit_start} - tstop {ascii_time_stop} {xv_orbit_stop} {rel_orbit_stop}')
+    logger.info('xo_orbit_close')
+    xo_orbit_close()
 
-        if rel_orbit_start == rel_orbit or rel_orbit_stop == rel_orbit:
-            logger.info(f'Generating MPL_AFUNAV for {station_id} between [{ascii_time_start}, {ascii_time_stop}] / pass {xv_orbit_start}')
-            create_station_unvailability_file(date_start, date_end, station_info, list_input_files)
-        else:
-            if debug == True:
-                logger.debug(f'Pass {xv_orbit_start} {rel_orbit_start} is available (not {rel_orbit})')
+    logger.info('xl_time_close')
+    xl_time_close()
+
 
         
 
@@ -426,7 +336,7 @@ def version():
     return package_version('bcops')
 
 if __name__ == '__main__':
-    generate_afunav()
+    generate_bct_pass()
 
 
 exit(0)

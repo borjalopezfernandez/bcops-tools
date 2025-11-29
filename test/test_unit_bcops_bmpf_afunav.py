@@ -60,6 +60,61 @@ def test_options(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+def test_input_errors(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 2025-10-23T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 66)
+
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 --station-id IVK_____'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 66)
+   
+    cmd             = f'bcops_bmpf_afunav -e 2025-10-22T00:00:00 --station-id IVK_____'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 66)
+
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 2025-10-23T00:00:00 --station-id IVK_____'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 66)
+    
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 2025-10-23T00:00:00 --station-id pipo -o 38'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 99)
+
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 202A-10-23T00:00:00 --station-id IVK_____ -o 38'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 99)
+
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 2023-10-23T00:00:00 --station-id IVK_____ -o 38'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 99)
+
+    cmd             = f'bcops_bmpf_afunav -s 2025-10-22T00:00:00 -e 2027-03-30T00:00:00 --station-id IVK_____ -o 999999999'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 99)
+
+    cmd             = f'bcops_bmpf_afunav -s 2020-10-22T00:00:00 -e 2037-03-30T00:00:00 --station-id IVK_____ -o 38'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert((exit >> 8) == 99)
+
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_get_data(print_separator):
     """
     GIVEN
