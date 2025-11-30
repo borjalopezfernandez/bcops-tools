@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Earth_Explorer_File>
+
+  <Earth_Explorer_Header>
+    <Fixed_Header>
+      <File_Name>BIO_OPER_MPL_REFAUX_20251121T000000_20270331T000000_0006</File_Name>
+      <File_Description>FOS Reference Orbit Auxiliary File</File_Description>
+      <Notes/>
+      <Mission>BIOMASS</Mission>
+      <File_Class>OPER</File_Class>
+      <File_Type>MPL_REFAUX</File_Type>
+      <Validity_Period>
+        <Validity_Start>UTC=2025-11-21T00:00:00</Validity_Start>
+        <Validity_Stop>UTC=2027-03-31T00:00:00</Validity_Stop>
+      </Validity_Period>
+      <File_Version>0006</File_Version>
+      <Source>
+        <System>FOS</System>
+        <Creator>GENEOS</Creator>
+        <Creator_Version>1.0</Creator_Version>
+        <Creation_Date>UTC=2025-10-15T09:33:26</Creation_Date>
+      </Source>
+    </Fixed_Header>
+    <Variable_Header>
+      <Ref_Frame>EARTH_FIXED</Ref_Frame>
+      <Time_Reference>UTC</Time_Reference>
+    </Variable_Header>
+  </Earth_Explorer_Header>
+
+  <Data_Block type="xml">
+    <List_of_Major_Cycles count="7">
+      <Major_Cycle>
+        <UTC>UTC=2025-11-21T00:29:44.848773</UTC>
+        <Absolute_Orbit>+03017</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2026-02-01T00:34:23.961003</UTC>
+        <Absolute_Orbit>+04073</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2026-04-14T00:39:03.080527</UTC>
+        <Absolute_Orbit>+05129</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2026-06-25T00:43:42.095040</UTC>
+        <Absolute_Orbit>+06185</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2026-09-05T00:48:21.041999</UTC>
+        <Absolute_Orbit>+07241</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2026-11-16T00:53:00.055092</UTC>
+        <Absolute_Orbit>+08297</Absolute_Orbit>
+      </Major_Cycle>
+      <Major_Cycle>
+        <UTC>UTC=2027-01-27T00:57:39.158674</UTC>
+        <Absolute_Orbit>+09353</Absolute_Orbit>
+      </Major_Cycle>
+    </List_of_Major_Cycles>
+  </Data_Block>
+
+</Earth_Explorer_File>

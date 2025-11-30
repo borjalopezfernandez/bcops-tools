@@ -73,7 +73,7 @@ def test_get_data(print_separator):
     file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_BCT______0001.EOF'
     file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'  
     file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_GNDTRACK_0001.EOF'
-
+    
     logger.info(root_dist_info)
     logger.info(dist_info_dir)
     logger.info(package_root_dir)
@@ -83,6 +83,27 @@ def test_get_data(print_separator):
     logger.info(file_swtssp)
 
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_parse_mission_timeline(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    import importlib.resources
+    import pathlib
+    dist                = importlib.metadata.distribution('eocfi')
+    root_dist_info      = dist._path
+    dist_info_dir       = pathlib.Path(dist._path).parent
+    package_root_dir    = f'{dist_info_dir}/bcops'
+    file_misstimeline   = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+
+    
+       
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
 
 
 def test_tom_mc1(print_separator):
@@ -98,6 +119,6 @@ def test_tom_mc1(print_separator):
     cmd             = f'bcops_bmpf_bct_pass -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00 -D'
     logger.info(cmd)
     exit = os.system(cmd)
-    assert(exit == 0)
+    assert( exit >> 8 == 0 )
 
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
