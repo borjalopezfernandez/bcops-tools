@@ -2,11 +2,13 @@
 
 import os
 import sys
+import shutil
 import importlib
 import pathlib
 import traceback
 
-from datetime import datetime
+from lxml       import etree
+from datetime   import datetime
 
 try:
     import eocfi
@@ -58,6 +60,7 @@ import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--file', '-f',                                            help = 'file MPL_PPF_1_ to be patched')
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-11-22T00:00:00')
 @click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-03-30T00:00:00')
 @click.option('--station-id',                                            help = 'station id to create the AF unavailability')
@@ -69,15 +72,15 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 @click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
 
 
-def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list: bool, config: bool, version: bool, silent: bool, debug: bool):
+def downlink_idle_frames(file: str, start: str, end: str, station_id: str, rel_orbit: str, list: bool, config: bool, version: bool, silent: bool, debug: bool):
 
     """
     \b
-    Generate AF unavailability MPF_AFUNAV according to BIO-ESA-EOPG-EEGS-ID-0082.
+    Process PDGS Payload Plan to BIO-ESA-EOPG-EEGS-ID-0079 to modify the X-band downlink plan for just transmission of idle frames only.
 
-    The specified X-band station is qualified by --station-id
+    The PDHU memory playback/stop/deletion requests are removed for the modified passes
 
-    Unavailability is generated for passes on the relative orbit of the repeat cycle qualified by --rel-orbit  
+    The downlink passes for a given --station-id are selected based on the relative orbit of the repeat cycle qualified by --rel-orbit  
     \b
 
     """
@@ -96,20 +99,16 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
     file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
     file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'
     file_gnd_db       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_GND_DB_00000000T000000_99999999T999999_STATIONS_0001.EOF'
-    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_GNDTRACK_0001.EOF' 
 
     if config == True:
         print(file_gnd_db)
         print(file_orbref)
-        print(file_swtssp)
         print(file_orbsct)
         exit(0)
-
    
     list_input_files = []
     list_input_files.append(os.path.splitext(os.path.basename(file_gnd_db))[0])
     list_input_files.append(os.path.splitext(os.path.basename(file_orbref))[0])
-    list_input_files.append(os.path.splitext(os.path.basename(file_swtssp))[0])
     list_input_files.append(os.path.splitext(os.path.basename(file_orbsct))[0])
 
     if list == True and station_id != None:
@@ -133,20 +132,24 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
             
         exit(0)
 
+    if file == None:
+        print(f"Error: --file is mandatory")
+        exit(66)
+
+    if os.path.exists(file) == False:
+        print(f"Error: file {file} does not exist")
+        exit(99)
+
+    if os.path.basename(file)[9:19] != 'MPL_PPF_1_':
+        print(f"Error: file {os.path.basename(file)} with file-type {os.path.basename(file)[9:19]} is not supported")
+        exit(99)
+
     if station_id == None:
         print(f"Error: --station-id is mandatory")
         exit(66)
 
     if rel_orbit == None:
         print(f"Error: --rel-orbit is mandatory")
-        exit(66)
-
-    if start == None:
-        print(f"Error: --start is mandatory")
-        exit(66)
-
-    if end == None:
-        print(f"Error: --end is mandatory")
         exit(66)
 
     if station_id not in list_station_id:
@@ -174,17 +177,25 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
         print(f'Error --rel-orbit {rel_orbit} not in range between 1..{cycle_orbits}')
         exit(99)
 
-    str_datemjd2000_start  = start
-    str_datemjd2000_end    = end
+    str_date_start  = start
+    str_date_stop   = end
     date_format            = '%Y-%m-%dT%H:%M:%S'
-    
-    
-    try:
-        datetime.strptime(str_datemjd2000_start, date_format)
-        datetime.strptime(str_datemjd2000_end, date_format)
-    except Exception as e:
-        print(f'Error parsing input datetimes: {e}')
-        exit(99)
+    date_start             = None
+    date_stop              = None
+
+    if str_date_start != None:
+        try:
+            date_start = datetime.strptime(str_date_start, date_format)
+        except Exception as e:
+            print(f'Error parsing start input datetime: {e}')
+            exit(99)
+
+    if str_date_stop != None:
+        try:
+            date_stop = datetime.strptime(str_date_stop, date_format)
+        except Exception as e:
+            print(f'Error parsing start input datetime: {e}')
+            exit(99)
 
     # Variables for time conversion
     ascii_id_out        = XL_ASCII_CCSDSA
@@ -194,16 +205,17 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
     mode                = XL_MODEL_DEFAULT
 
     if debug == True:
-        logger.info(f'xl_time_ascii_to_processing => {str_datemjd2000_start}')
+        logger.info(f'xl_time_ascii_to_processing => {str_date_start}')
 
     ascii_id_in         = XL_ASCII_CCSDSA
     time_ref_in         = XL_TIME_UTC
-    ascii_in            = str_datemjd2000_start
+    ascii_in            = str_date_start
     proc_id_out         = XL_PROC
     time_ref_out        = XL_TIME_UTC
     processing_out      = None
     
-    processing_out = xl_time_ascii_to_processing(
+    if str_date_start != None:
+        processing_out = xl_time_ascii_to_processing(
                                         ascii_id_in,
                                         time_ref_in,
                                         ascii_in,
@@ -214,10 +226,12 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
     mjd2000_start = processing_out
 
     if debug == True:
-        logger.debug(f'xl_time_ascii_to_processing {str_datemjd2000_start} => {mjd2000_start}')
+        logger.debug(f'xl_time_ascii_to_processing {str_date_start} => {mjd2000_start}')
 
-    ascii_in       = str_datemjd2000_end
-    processing_out = xl_time_ascii_to_processing(
+    ascii_in       = str_date_stop
+
+    if str_date_stop != None:
+        processing_out = xl_time_ascii_to_processing(
                                         ascii_id_in,
                                         time_ref_in,
                                         ascii_in,
@@ -227,7 +241,7 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
 
     mjd2000_end = processing_out
 
-    if mjd2000_start > mjd2000_end:
+    if start != None and end != None and (mjd2000_start > mjd2000_end):
         print(f'Error --start: {start} cannot be later than --end {end}')
         exit(99)
 
@@ -267,18 +281,9 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
     if debug == True:
         logger.info(xo_validity_time)
 
-    if mjd2000_end > xo_validity_time['stop'] or mjd2000_start < xo_validity_time['start']:
+    if (str_date_start != None and str_date_stop != None) and (mjd2000_end > xo_validity_time['stop'] or mjd2000_start < xo_validity_time['start']):
         logger.error(f'interval [{mjd2000_start},{mjd2000_end}] is out of range of orbit validity interval [{xo_validity_time['start']},{xo_validity_time['stop']}]')
         exit(99)
-
-    if debug == True:
-        logger.info(f'xv_swath_id_init')
-    mode = XV_FILE_STF
-    xv_swath_id_init(mode, file_swtssp, debug)
-
-    if debug == True:
-        logger.info(f'xv_stationvistime_compute')
-    list_stationvistime = xv_stationvistime_compute(file_gnd_db, station_id, mjd2000_start, mjd2000_end, debug)
 
     if debug == True:
         logger.info(f'xo_orbit_close')
@@ -296,135 +301,83 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
             print(traceback.format_exc())
         exit(99)
 
-    for xv_time_interval in list_stationvistime:
-        xv_time_start   = xv_time_interval['xv_time_interval']['tstart']
-        xv_time_stop    = xv_time_interval['xv_time_interval']['tstop']
-        xv_orbit_start  = xv_time_start['orbit_num']
-        xv_orbit_stop   = xv_time_stop['orbit_num']
+    LIST_OF_MEMORY_REQUEST  = ['DUMP_HHV', 'DUMP_HVH', 'DUMP_HK_', 'STOPDUMP', 'FREE_HK_', 'FREE_H__', 'FREE_V__'] 
+    file_ppf_1_original     = file
+    file_ppf_1              = f'{file}_patched'
+    shutil.copy(file_ppf_1_original, file_ppf_1)
+    
+    logger.info(f'Generating the file {file_ppf_1}')
+    
+    xml_ppf_1               = etree.parse(file_ppf_1)
+    root_ppf_1              = xml_ppf_1.getroot()
+    path                    = '/Earth_Explorer_File/Earth_Explorer_Header/Fixed_Header/Notes'
+    fixed_header_notes      = root_ppf_1.xpath(path)
+
+    if len(fixed_header_notes) > 0:
+        fixed_header_notes_text = fixed_header_notes[0].text
+
+    if fixed_header_notes_text is None:
+        fixed_header_notes_text = ''
+
+    if debug == True:
+        logger.debug(f"Fixed Header Notes: {fixed_header_notes_text}")
+    
+    path                    = '/Earth_Explorer_File/Data_Block/List_of_EVRQs/EVRQ'
+    list_of_evrqs           = root_ppf_1.xpath(path)
+
+    if debug == True:
+        logger.debug(f"Number of EVRQs: {len(list_of_evrqs)}")
+    
+    for evrq in list_of_evrqs:
+        path    = 'RQ/RQ_Name'
+        rq_name = evrq.xpath(path)
+        if len(rq_name) == 0:
+            continue
+        rq_name = rq_name[0].text
+        if rq_name not in LIST_OF_MEMORY_REQUEST:
+            continue
         
-        utc_time_start  = float(xv_time_start['utc_time'])
-        utc_time_stop   = float(xv_time_stop['utc_time'])
+        path            = 'RQ/RQ_Absolute_orbit'
+        rq_abs_orbit    = int(evrq.xpath(path)[0].text)
+        rq_rel_orbit    = int(xo_orbit_rel_from_abs(rq_abs_orbit)['rel_orbit'])
 
-        ascii_time_start = xl_time_processing_to_ascii(proc_id_in,
-                                              time_ref_in,
-                                              utc_time_start,
-                                              ascii_id_out,
-                                              time_ref_out,
-                                              debug)
+        if rq_rel_orbit != rel_orbit:
+            continue
+
+        path                = 'RQ/RQ_Execution_Time'
+        rq_exec_time        = evrq.xpath(path)[0].text
+        date_rq_exec_time   = datetime.strptime(rq_exec_time, 'UTC=%Y-%m-%dT%H:%M:%S.%f')
         
-        ascii_time_stop  = xl_time_processing_to_ascii(proc_id_in,
-                                              time_ref_in,
-                                              utc_time_stop,
-                                              ascii_id_out,
-                                              time_ref_out,
-                                              debug)
-        
-        rel_orbit_start = int(xo_orbit_rel_from_abs(xv_orbit_start)['rel_orbit'])
-        rel_orbit_stop  = int(xo_orbit_rel_from_abs(xv_orbit_stop)['rel_orbit'])
+        if date_start != None and date_rq_exec_time < date_start:
+            logger.info(f"Skipping RQ_Name: {rq_name} at {rq_exec_time} / RQ_Absolute_orbit: {rq_abs_orbit} / RQ_Relative_orbit: {rq_rel_orbit} before start date")
+            continue
 
-        date_start      = datetime.strptime(ascii_time_start, date_format)
-        date_end        = datetime.strptime(ascii_time_stop, date_format)
+        if date_stop != None and date_rq_exec_time > date_stop:
+            logger.info(f"Skipping RQ_Name: {rq_name} at {rq_exec_time} / RQ_Absolute_orbit: {rq_abs_orbit} / RQ_Relative_orbit: {rq_rel_orbit} after end date")
+            continue
 
-        if debug == True:
-            logger.info(f'tstart {ascii_time_start} {xv_orbit_start} {rel_orbit_start} - tstop {ascii_time_stop} {xv_orbit_stop} {rel_orbit_stop}')
+        if f'Patched passes to transmit idle frames only for {station_id}:' not in fixed_header_notes_text:
+            fixed_header_notes_text += f'\n         Patched passes to transmit idle frames only for {station_id}:'
 
-        if rel_orbit_start == rel_orbit or rel_orbit_stop == rel_orbit:
-            logger.info(f'Generating MPL_AFUNAV for {station_id} between [{ascii_time_start}, {ascii_time_stop}] / pass {xv_orbit_start}')
-            create_station_unvailability_file(date_start, date_end, station_info, list_input_files)
-        else:
-            if debug == True:
-                logger.debug(f'Pass {xv_orbit_start} {rel_orbit_start} is available (not {rel_orbit})')
+        if str(rq_abs_orbit) not in fixed_header_notes_text:
+            fixed_header_notes_text += f' {rq_abs_orbit}'
 
-        
+        logger.info(f"Removing RQ_Name: {rq_name} at {rq_exec_time} / RQ_Absolute_orbit: {rq_abs_orbit} / RQ_Relative_orbit: {rq_rel_orbit}")    
 
+        parent = evrq.getparent()
+        parent.remove(evrq)
+    
+    logger.info(f"Number of EVRQs after removal: {len(root_ppf_1.xpath('/Earth_Explorer_File/Data_Block/List_of_EVRQs/EVRQ'))}")
+    root_ppf_1.xpath('/Earth_Explorer_File/Data_Block/List_of_EVRQs')[0].set('count', str(len(root_ppf_1.xpath('/Earth_Explorer_File/Data_Block/List_of_EVRQs/EVRQ'))))
+    fixed_header_notes[0].text = fixed_header_notes_text
+    xml_ppf_1.write(file_ppf_1, xml_declaration = True, pretty_print = True, encoding = 'utf-8')
 
 # ===========================================================================================================================================================================
-
-
-def create_station_unvailability_file(validity_start: datetime, validity_end: datetime, station_info : map, list_input_files : list, debug = False):
- 
-    if debug == True:
-        logger.debug(f"ENTRY : {sys._getframe().f_code.co_name} - station_id = {station_info['station_id']}")
-
-    station_id                  = station_info['station_id']
-    station_descriptor          = station_info['descriptor']
-    datetime_now                = datetime.now()
-    format_date_time_now        = datetime_now.strftime('%Y-%m-%dT%H:%M:%S')
-    debug                       = False
-    xml_root_name               = 'Earth_Explorer_File'
-    fd_afunav_file              = xf_tree_create(debug)
-    xf_tree_create_root(fd_afunav_file, xml_root_name, debug)
-    xf_tree_create_header(fd_afunav_file, XF_HEADER_FORMAT_EOF, debug)
-    mission_id                  = 'BIO'
-    file_type                   = 'MPL_AFUNAV'
-    mission                     = 'BIOMASS'
-    file_description            = f'AF Unavailability Notification {station_id} by B-COPS'
-    notes                       = f'This file defines an X-band reception unavailability for {station_descriptor}'
-    file_class                  = 'OPER'
-    file_version                = 1
-    file_version_str            = '0001'
-    system                      = 'PDGS'
-    creator                     = 'BCOPS'
-    creator_version             = version()
-    creation_date               = f'UTC={format_date_time_now}'
-    file_name                   = f'{mission_id}_{file_class}_{file_type}_{validity_start.strftime('%Y%m%dT%H%M%S')}_{validity_end.strftime('%Y%m%dT%H%M%S')}_{file_version_str}.EOF'
-    utc_validity_start          = f'UTC={validity_start.strftime('%Y-%m-%dT%H:%M:%S')}'
-    utc_validity_end            = f'UTC={validity_end.strftime('%Y-%m-%dT%H:%M:%S')}'
-
-    xf_tree_set_fixed_header_items(fd_afunav_file, os.path.splitext(file_name)[0], file_description, notes, mission, file_class, file_type, validity_start.strftime('UTC=%Y-%m-%dT%H:%M:%S'), validity_end.strftime('UTC=%Y-%m-%dT%H:%M:%S'), file_version, system, creator, creator_version, creation_date, debug)
-
-    '''
-       *** Variable header elements are NOT allowed by schemas/bmpf/EO_OPER_MPL_AFUNAV_0100.XSD ***
-    
-    xf_tree_add_child(fd_afunav_file, '/Earth_Explorer_File/Earth_Explorer_Header/Variable_Header/', 'Station_Identifier', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', station_id, '%s')
-
-    xf_tree_add_child(fd_afunav_file, '/Earth_Explorer_File/Earth_Explorer_Header/Variable_Header/', 'Station_Descriptor', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', station_info['descriptor'], '%s')
-
-    xf_tree_add_child(fd_afunav_file, '/Earth_Explorer_File/Earth_Explorer_Header/Variable_Header', 'List_of_Input_Files', debug)
-    xf_tree_add_attribute(fd_afunav_file, '.', 'count', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '@count', '4', '%s')
-
-    xf_tree_add_child(fd_afunav_file, '/Earth_Explorer_File/Earth_Explorer_Header/Variable_Header/List_of_Input_Files', 'Input_File', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', list_input_files[0], '%s')
-
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Input_File', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', list_input_files[1], '%s')
-
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Input_File', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', list_input_files[2], '%s')
-
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Input_File', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', list_input_files[3], '%s')
-
-    '''
-
-    xf_tree_add_child(fd_afunav_file, "/Earth_Explorer_File/", "Data_Block", debug)
-    xf_tree_add_attribute(fd_afunav_file, '.', 'type', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '@type', 'xml', '%s')
-
-    xf_tree_add_child(fd_afunav_file, '.', 'Unavailability', debug)
-    xf_tree_add_child(fd_afunav_file, '.', 'Station_ID', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', station_id[:3], '%s')
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Start_Time', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', utc_validity_start, '%s')
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Stop_Time', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', utc_validity_end, '%s')
-    xf_tree_add_next_sibling(fd_afunav_file, '.', 'Comments', debug)
-    xf_tree_set_string_node_value(fd_afunav_file, '.', f'Station unavailability {station_descriptor}', '%s')
-
-    xf_tree_write(fd_afunav_file, file_name, debug)
-
-    if debug == True:
-        logger.debug(f"EXIT : {sys._getframe().f_code.co_name}")
-
 
 def version():
     return package_version('bcops')
 
 if __name__ == '__main__':
-    generate_afunav()
-
+    downlink_idle_frames()
 
 exit(0)

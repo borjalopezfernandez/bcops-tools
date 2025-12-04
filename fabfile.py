@@ -81,10 +81,10 @@ def test_unit_bcops_bmpf_afunav(context):
 
 
 @task
-def test_unit_bcops_bmpf_afunav(context):
+def test_unit_bcops_bmpf_downlink_idleframes(context):
     '''
-    Execution of unit test main_test_unit_bcops_bmpf_afunav.py 
+    Execution of unit test main_test_unit_bcops_bmpf_downlink_idleframes.py 
     '''
-    cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_afunav.py'
+    cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_downlink_idleframes.py'
     logger.info(cmd)
     context.run(cmd)

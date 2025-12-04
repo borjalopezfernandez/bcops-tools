@@ -98,9 +98,63 @@ def test_parse_mission_timeline(print_separator):
     root_dist_info      = dist._path
     dist_info_dir       = pathlib.Path(dist._path).parent
     package_root_dir    = f'{dist_info_dir}/bcops'
-    file_misstimeline   = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+    file_misstl         = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+    logger.info(file_misstl)
 
+    from lxml import etree
+    from datetime import datetime
+
+    xml_file    = None
+    xml_root    = None
+
+    try:
+        xml_file = etree.parse(file_misstl)
+        xml_root = xml_file.getroot() 
+    except:
+        logger.error('Error parsing')
     
+    path = '/Earth_Explorer_File/Data_Block/List_of_Global_Coverages/Global_Coverage/List_of_Major_Cycles/Major_Cycle'
+
+    list_major_cycle = xml_root.xpath(path)
+
+    for major_cycle in list_major_cycle:
+        print(major_cycle.tag)
+        print(major_cycle.attrib)
+        print(major_cycle.attrib['id'])
+
+    print()
+    path = '/Earth_Explorer_File/Data_Block/List_of_Global_Coverages/Global_Coverage/List_of_Major_Cycles/Major_Cycle/List_of_Swaths/Swath'
+
+    list_xml_swath = xml_root.xpath(path)
+
+    date_format            = 'UTC=%Y-%m-%dT%H:%M:%S'
+        
+    list_swath = []
+
+    for xml_swath in list_xml_swath:
+        swath               = {}
+        swath_start         = datetime.strptime(xml_swath.xpath('Start_Time')[0].text, date_format)
+        swath_stop          = datetime.strptime(xml_swath.xpath('Stop_Time')[0].text, date_format)
+        swath['id']         = xml_swath.attrib['id']
+        swath['Start_Time'] = swath_start
+        swath['Stop_Time']  = swath_stop
+
+        print(swath['id'])
+        print(swath_start)
+        print(swath_stop)
+
+        list_swath.append(swath)
+
+        
+
+    '''
+ 
+    for elem in xml_root:
+        print(elem.tag)
+        for child in elem:
+            print(child.tag)
+
+    '''
        
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
