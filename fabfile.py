@@ -58,8 +58,10 @@ def test(context):
     test_unit_bcops_bmpf_afunav(context)
     test_unit_bcops_maap_query_datatake(context)
     test_unit_bcops_bmpf_afunav(context)
-    
-    
+    test_unit_bcops_bmpf_downlink_idleframes(context)
+    test_unit_bcops_bmpf_bct_pass(context)
+
+
 @task
 def test_unit_bcops_maap_query_datatake(context):
     '''
@@ -86,5 +88,15 @@ def test_unit_bcops_bmpf_downlink_idleframes(context):
     Execution of unit test main_test_unit_bcops_bmpf_downlink_idleframes.py 
     '''
     cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_downlink_idleframes.py'
+    logger.info(cmd)
+    context.run(cmd)
+
+
+@task
+def test_unit_bcops_bmpf_bct_pass(context):
+    '''
+    Execution of unit test main_test_unit_bcops_bmpf_bct_pass.py 
+    '''
+    cmd = 'pytest -rpf -s test/test_unit_bcops_bmpf_bct_pass.py'
     logger.info(cmd)
     context.run(cmd)

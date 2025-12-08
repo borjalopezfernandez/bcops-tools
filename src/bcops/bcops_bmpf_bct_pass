@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from multiprocessing.util import debug
 import os
 import sys
 import importlib
@@ -54,6 +55,8 @@ from eocfi.api_xf import xf_tree_write
 from eocfi.constants import XV_FILE_STF
 from eocfi.constants import XP_STD_INIT
 
+import bcops.bcops_bmpf_parse_misstl as parser_misstl
+
 from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
@@ -75,9 +78,7 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
 
     """
     \b
-    Generate BCT passes / opportunies.
-
-    TBW
+    Compute the BCT passes / opportunities.
     \b
 
     """
@@ -88,10 +89,10 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
         xo_check_library_version()
         exit(0)
 
-    dist                = importlib.metadata.distribution('eocfi')
-    root_dist_info      = dist._path
-    dist_info_dir       = pathlib.Path(dist._path).parent
-    package_root_dir    = f'{dist_info_dir}/bcops'
+    dist              = importlib.metadata.distribution('eocfi')
+    root_dist_info    = dist._path
+    dist_info_dir     = pathlib.Path(dist._path).parent
+    package_root_dir  = f'{dist_info_dir}/bcops'
 
     file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
     file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'
@@ -99,16 +100,21 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
     file_swt_1        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW1_CAL__0001.EOF'
     file_swt_2        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW2_CAL__0001.EOF'
     file_swt_3        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW3_CAL__0001.EOF'
-    file_timeline     = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+    file_swt_srm      = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW2_CAL__0001.EOF'
+    file_misstl       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
     file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_BCT______0001.EOF'
     zone_id           = 'BCT'
 
     if config == True:
-        logger.info(file_orbref)
-        logger.info(file_swtssp)
-        logger.info(file_orbsct)
-        logger.info(file_gndbct)
-        zone            = xd_read_zone(file_gndbct, zone_id, debug)
+        logger.info(os.path.basename(file_orbref))
+        logger.info(os.path.basename(file_orbsct))
+        logger.info(os.path.basename(file_misstl))
+        logger.info(os.path.basename(file_gndbct))
+        logger.info(os.path.basename(file_swt_1))
+        logger.info(os.path.basename(file_swt_2))
+        logger.info(os.path.basename(file_swt_3))
+        logger.info(os.path.basename(file_swt_srm))
+        zone = xd_read_zone(file_gndbct, zone_id, debug)
         logger.info(zone)
         exit(0)
 
@@ -122,18 +128,26 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
         print('Error: start and end datetime parameters are required')
         exit(1)
 
-    str_datemjd2000_start  = start
-    str_datemjd2000_end    = end
-    date_format            = '%Y-%m-%dT%H:%M:%S'
-    datemjd2000_start      = None
-    datemjd2000_end        = None
+    str_datemjd2000_start   = start
+    str_datemjd2000_end     = end
+    date_format             = '%Y-%m-%dT%H:%M:%S'
+    datetime_start          = None
+    datetime_end            = None
     
     try:
-        datemjd2000_start      = datetime.strptime(str_datemjd2000_start, date_format)
-        datemjd2000_end        = datetime.strptime(str_datemjd2000_end, date_format)
+        datetime_start      = datetime.strptime(str_datemjd2000_start, date_format)
+        datetime_end        = datetime.strptime(str_datemjd2000_end, date_format)
     except Exception as e:
         print(f'Error parsing input datetimes: {e}')
         exit(1)
+
+    if debug == True:
+        logger.info('xd_read_zone_id')
+    list_zone_id = xd_read_zone_id(file_gndbct, debug)
+    zone_id      = list_zone_id[0]
+    xd_read_zone(file_gndbct, zone_id, debug)
+    if debug == True:
+        logger.info(f'Processing zone {zone_id}')
 
     # Variables for time conversion
     ascii_id_out        = XL_ASCII_CCSDSA
@@ -151,16 +165,14 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
     proc_id_out         = XL_PROC
     time_ref_out        = XL_TIME_UTC
     processing_out      = None
-    
-    processing_out = xl_time_ascii_to_processing(
+    processing_out      = xl_time_ascii_to_processing(
                                         ascii_id_in,
                                         time_ref_in,
                                         ascii_in,
                                         proc_id_out,
                                         time_ref_out,
                                         debug)
-
-    mjd2000_start = processing_out
+    mjd2000_start       = processing_out
 
     if debug == True:
         logger.debug(f'xl_time_ascii_to_processing {str_datemjd2000_start} => {mjd2000_start}')
@@ -174,59 +186,126 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
                                         time_ref_out,
                                         debug)
 
-    mjd2000_end = processing_out
-
+    mjd2000_end     = processing_out
     swath_mode      = XV_FILE_STF
     atmos_init_mode = XP_STD_INIT
     atmos_model     = 0
     atmos_init_file = None
 
-    logger.info('xl_model_init')
+    if debug == True:
+        logger.info('xl_model_init')
     xl_model_init(XL_MODEL_DEFAULT, debug)
 
-    logger.info(f'xl_time_ref_init_file => {file_orbref}')
+    if debug == True:
+        logger.info(f'xl_time_ref_init_file => {file_orbref}')
     xl_time_ref_init_file(file_orbref, debug)
 
-    logger.info(f'xo_orbit_init_file => {file_orbref}')
+    if debug == True:
+        logger.info(f'xo_orbit_init_file => {file_orbref}')
     xo_orbit_init_file(file_orbref, debug)
 
-    logger.info('xp_atmos_init')
+    if debug == True:
+        logger.info('xp_atmos_init')
     xp_atmos_init(atmos_init_mode, atmos_model, atmos_init_file, debug)
 
-    logger.info(f'xv_swath_id_init => {file_swtssp}')
-    xv_swath_id_init(swath_mode, file_swtssp, debug)
- 
-    '''
-        One single zone 'BCT' is expected
-    '''
-    logger.info('xd_read_zone_id')
-    list_zone_id = xd_read_zone_id(file_gndbct, debug)
-    zone_id      = list_zone_id[0]
+    dict_file_swath = {}
+    dict_file_swath['Swath_1']  = file_swt_1
+    dict_file_swath['Swath_2']  = file_swt_2
+    dict_file_swath['Swath_3']  = file_swt_3
+    dict_file_swath['SRM']      = file_swt_srm
 
-    xd_read_zone(file_gndbct, zone_id, debug)
+    list_swath = parser_misstl.parse_mission_timeline_swath_cycle(file_misstl, logger, debug)
 
-    debug = False
+    current_datetime_start      = datetime_start
+    current_datetime_end        = datetime_end
 
-    logger.info(f'Processing zone {zone_id}')
+    for swath in list_swath:
+        if debug == True:
+            logger.debug(f'Swath ID: {swath["id"]} / Start: {swath["Start_Time"]} / Stop: {swath["Stop_Time"]}')
+        if current_datetime_start < swath["Start_Time"] or current_datetime_start > swath["Stop_Time"]:
+            if debug == True:
+                logger.debug('Swath starts after start datetime,  skipping')
+            continue
+        if datetime_end < swath["Stop_Time"]:
+            current_datetime_end = datetime_end
+        else:
+            current_datetime_end = swath["Stop_Time"]
+        query_bct_pass(current_datetime_start, current_datetime_end, file_gndbct, dict_file_swath[swath["id"]], zone_id, debug)
+        if current_datetime_end < swath["Stop_Time"]:
+            break
+        else:
+            current_datetime_start = swath["Stop_Time"]
+
+    if debug == True:
+        logger.info('xo_orbit_close')
+    xo_orbit_close()
+
+    if debug == True:
+        logger.info('xl_time_close')
+    xl_time_close()
+
+    exit(0)
+
+# ===========================================================================================================================================================================
+
+def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct: str, file_swath: str, zone_id: str, debug: bool):
+    if debug == True:
+        logger.info(f'Processing BCT in {os.path.basename(file_gndbct)} [{datetime_start} to {datetime_end}] => {file_swath}')
+    
+    if debug == True:
+        logger.info(f'xv_swath_id_init => {os.path.basename(file_swath)}')
+    swath_mode      = XV_FILE_STF
+    xv_swath_id_init(swath_mode, file_swath, debug)
+
+    if debug == True:
+        logger.info(f'xl_time_ascii_to_processing => {datetime_start.strftime("%Y-%m-%dT%H:%M:%S")}')
+
+    ascii_id_in         = XL_ASCII_CCSDSA
+    ascii_id_out        = XL_ASCII_CCSDSA
+    time_ref_in         = XL_TIME_UTC
+    time_ref_out        = XL_TIME_UTC
+    ascii_in            = datetime_start.strftime('%Y-%m-%dT%H:%M:%S')
+    proc_id_in          = XL_PROC
+    proc_id_out         = XL_PROC
+    processing_out      = None
+    processing_out      = xl_time_ascii_to_processing(
+                                        ascii_id_in,
+                                        time_ref_in,
+                                        ascii_in,
+                                        proc_id_out,
+                                        time_ref_out,
+                                        debug)
+    mjd2000_start       = processing_out
+
+    if debug == True:
+        logger.debug(f'xl_time_ascii_to_processing => {datetime_end.strftime("%Y-%m-%dT%H:%M:%S")}')
+
+    ascii_in       = datetime_end.strftime('%Y-%m-%dT%H:%M:%S')
+    processing_out = xl_time_ascii_to_processing(
+                                        ascii_id_in,
+                                        time_ref_in,
+                                        ascii_in,
+                                        proc_id_out,
+                                        time_ref_out,
+                                        debug)
+    mjd2000_end     = processing_out
 
     list_zone_vis = []
-    logger.info(f'xv_zonevistime_compute => {zone_id}')
+    if debug == True:
+        logger.info(f'xv_zonevistime_compute => {zone_id}')
     try:
-        list_zone_vis = xv_zonevistime_compute(file_gndbct, zone_id, mjd2000_start, mjd2000_end, True)
+        list_zone_vis = xv_zonevistime_compute(file_gndbct, zone_id, mjd2000_start, mjd2000_end, debug)
     except Exception as error:
-        logger.error(f"Failed {zone_id}")
+        logger.error(f"Failed xv_zonevistime_compute {zone_id}")
 
     for bct_vis in list_zone_vis:
         start_orbit         = bct_vis['xv_time_interval']['tstart']['orbit_num']
         start_utc_mjd_2000  = bct_vis['xv_time_interval']['tstart']['utc_time']
-        start_sec           = bct_vis['xv_time_interval']['tstart']['utc_time']
+        start_sec           = bct_vis['xv_time_interval']['tstart']['sec']
         end_orbit           = bct_vis['xv_time_interval']['tstop']['orbit_num']
         end_utc_mjd_2000    = bct_vis['xv_time_interval']['tstop']['utc_time']
-        end_sec             = bct_vis['xv_time_interval']['tstop']['utc_time']
+        end_sec             = bct_vis['xv_time_interval']['tstop']['sec']
         duration            = end_sec - start_sec
-
-        if duration != 0.0:
-            logger.warning('BCT visibility is made of single point which should have no duration')
 
         debug               = False
         processing_in       = start_utc_mjd_2000
@@ -236,20 +315,16 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
                                               ascii_id_out,
                                               time_ref_out,
                                               debug)
-        
-        logger.debug(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit}')
 
-    logger.info('xv_swath_id_close')
+        logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit}')
+
+        if duration != 0.0:
+            logger.warning('BCT visibility is made of single point which should have no duration')
+
+
+    if debug == True:
+        logger.info('xv_swath_id_close')
     xv_swath_id_close()
-
-    logger.info('xo_orbit_close')
-    xo_orbit_close()
-
-    logger.info('xl_time_close')
-    xl_time_close()
-
-# ===========================================================================================================================================================================
-
 
 
 def version():
