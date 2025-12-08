@@ -94,7 +94,7 @@ def test_parse_mission_timeline(print_separator):
     logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
     import importlib.resources
     import pathlib
-    dist                = importlib.metadata.distribution('eocfi')
+    dist                = importlib.metadata.distribution('bcops')
     root_dist_info      = dist._path
     dist_info_dir       = pathlib.Path(dist._path).parent
     package_root_dir    = f'{dist_info_dir}/bcops'
@@ -125,11 +125,9 @@ def test_parse_mission_timeline(print_separator):
     print()
     path = '/Earth_Explorer_File/Data_Block/List_of_Global_Coverages/Global_Coverage/List_of_Major_Cycles/Major_Cycle/List_of_Swaths/Swath'
 
-    list_xml_swath = xml_root.xpath(path)
-
-    date_format            = 'UTC=%Y-%m-%dT%H:%M:%S'
-        
-    list_swath = []
+    list_xml_swath  = xml_root.xpath(path)
+    date_format     = 'UTC=%Y-%m-%dT%H:%M:%S'
+    list_swath      = []
 
     for xml_swath in list_xml_swath:
         swath               = {}
@@ -138,24 +136,28 @@ def test_parse_mission_timeline(print_separator):
         swath['id']         = xml_swath.attrib['id']
         swath['Start_Time'] = swath_start
         swath['Stop_Time']  = swath_stop
-
         print(swath['id'])
         print(swath_start)
         print(swath_stop)
-
         list_swath.append(swath)
-
         
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
-    '''
- 
-    for elem in xml_root:
-        print(elem.tag)
-        for child in elem:
-            print(child.tag)
 
-    '''
-       
+def test_parser_mission_timeline(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    import bcops.bcops_bmpf_parse_misstl as parser_misstl
+    import importlib
+    import pathlib
+    dist            = importlib.metadata.distribution('bcops')
+    dist_info_dir   = pathlib.Path(dist._path).parent
+    file_misstl     = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+    list_swath      = parser_misstl.parse_mission_timeline_swath_cycle(file_misstl, logger, debug = True)
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
@@ -167,12 +169,8 @@ def test_tom_mc1(print_separator):
     THEN
     """
     logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
-
-    # bcops_bmpf_bct_pass -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00
-
-    cmd             = f'bcops_bmpf_bct_pass -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00 -D'
+    cmd             = f'bcops_bmpf_bct_pass -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
     logger.info(cmd)
     exit = os.system(cmd)
     assert( exit >> 8 == 0 )
-
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
