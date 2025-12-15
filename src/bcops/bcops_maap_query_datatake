@@ -17,7 +17,13 @@ from importlib.metadata import version as package_version
 import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
 
-BIO_COLLECTIONS     = ['BiomassLevel0IOC', 'BiomassLevel1aIOC', 'BiomassLevel1bIOC']
+'''
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel0
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1a
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1b
+'''
+
+BIO_COLLECTIONS     = ['BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b']
 list_item_id        = []
 list_datatake_id    = []
 
@@ -71,7 +77,6 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
         exit(1)
 
     datetime_current    = datetime_start
-
     datetime_now        = datetime.now(pytz.utc)
     filename            = f'bcops_maap_query_datatake_{type}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
     
@@ -108,7 +113,7 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
     str_datetime_end   = datetime_end.strftime(date_format)
     URL_LANDING_PAGE   = 'https://catalog.maap.eo.esa.int/catalogue/'
     if debug == True:
-        logger.debug(f'Connecting to {URL_LANDING_PAGE}')
+        logger.debug(f'Connecting to {URL_LANDING_PAGE} to query collections: {BIO_COLLECTIONS}')
     api                = Client.open(URL_LANDING_PAGE) 
     if debug == True:
         logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products')
