@@ -37,7 +37,7 @@ def test_options(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_l0_S1_RAW__0S(print_separator):
+def test_TOM_GC1_MC1_S1_RAW__0S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -51,7 +51,7 @@ def test_l0_S1_RAW__0S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_csv_l0_S1_RAW__0S(print_separator):
+def test_csv_TOM_GC1_MC1_S1_RAW__0S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -85,7 +85,7 @@ def test_csv_l0_S1_RAW__0S(print_separator):
 
 
 
-def test_l1a_S1_SCS__1S(print_separator):
+def test_TOM_GC1_MC1_S1_SCS__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -99,7 +99,7 @@ def test_l1a_S1_SCS__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_csv_l1a_S1_SCS__1S(print_separator):
+def test_csv_TOM_GC1_MC1_S1_SCS__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -132,7 +132,7 @@ def test_csv_l1a_S1_SCS__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_l1b_S1_DGM__1S(print_separator):
+def test_TOM_GC1_MC1_S1_DGM__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -146,7 +146,7 @@ def test_l1b_S1_DGM__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_csv_l1b_S1_DGM__1S(print_separator):
+def test_csv_TOM_GC1_MC1_S1_DGM__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -179,7 +179,7 @@ def test_csv_l1b_S1_DGM__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_l0_S2_RAW__0S(print_separator):
+def test_TOM_GC1_MC1_S2_RAW__0S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -193,7 +193,7 @@ def test_l0_S2_RAW__0S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_l1a_S2_SCS__1S(print_separator):
+def test_TOM_GC1_MC1_S2_SCS__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
@@ -207,7 +207,7 @@ def test_l1a_S2_SCS__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_l1b_S2_DGM__1S(print_separator):
+def test_TOM_GC1_MC1_S2_DGM__1S(print_separator):
     """
     GIVEN test_conversion
     WHEN 
