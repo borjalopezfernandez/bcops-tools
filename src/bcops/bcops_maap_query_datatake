@@ -21,11 +21,14 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel0
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1a
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1b
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAux
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAuxRest
 '''
 
-BIO_COLLECTIONS     = ['BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b']
+BIO_COLLECTIONS     = ['BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b', 'BiomassAux', 'BiomassAuxRest']
 list_item_id        = []
 list_datatake_id    = []
+prev_item_id        = None
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-22T00:00:00Z')
@@ -41,13 +44,20 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
 
     """
     \b
-    Query MAAP catalogue for data take visibility information for a given time interval and product type.
+    Query MAAP catalogue for data-take information within some time interval and product type within the following collections:
+    > BiomassLevel0
+    > BiomassLevel1a
+    > BiomassLevel1b
+    > BiomassAux
+    > BiomassAuxRest
 
     CSV file naming convention is:
         bcops_maap_query_datatake_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
 
     CSV file format is:
-        datatake_id, product_type, product_id, sensing_start, sensing_end     
+        datatake_id, product_type, product_id, sensing_start, sensing_end
+
+    Auxiliary products are datatake-less and no grouping is performed.
     \b
 
     """    
@@ -65,7 +75,13 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
     str_datetime_end    = end
     date_format         = '%Y-%m-%dT%H:%M:%SZ'
     time_delta          = timedelta(hours = 1)
-    # time_delta          = timedelta(days = 1)
+
+    if type in ['AUX_TEC___', 'AUX_ATT___', 'AUX_ORB___', 'MPL_ORBPRE']:
+        time_delta = timedelta(days = 1)
+    
+    if type in ['AUX_ERP_RD', 'MPL_ORBREF']:
+        time_delta = timedelta(days = 7)
+
     datetime_start      = None
     datetime_end        = None
     
@@ -76,6 +92,15 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
         print(f'Error parsing input datetimes: {e}')
         exit(1)
 
+    
+
+    delta_total = datetime_end - datetime_start
+
+    if delta_total <= time_delta:
+        time_delta      = delta_total
+        if debug == True:
+            logger.debug(f'Query delta interval set to {time_delta}')
+        
     datetime_current    = datetime_start
     datetime_now        = datetime.now(pytz.utc)
     filename            = f'bcops_maap_query_datatake_{type}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
@@ -89,14 +114,22 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
         header              = ['datatake_id', 'product_type', 'product_id', 'sensing_start', 'sensing_end']
         csv_writer.writerow(header)
   
+    list_datatake_id        = []
 
-    list_datatake_id    = []
+    query_end = datetime_start
+    '''
+    print(f'datetime_current    {datetime_current}')
+    print(f'datetime_start      {datetime_start}')
+    print(f'datetime_end        {datetime_end}')
+    '''
 
     while datetime_current < datetime_end:
-        start               = datetime_current
-        datetime_current    += time_delta
-        end                 = datetime_current
-        list_datatake_id    += query_biomass_products(start, end, type, csv_writer, debug)
+        if datetime_current + time_delta <= datetime_end:
+            query_end += time_delta
+        else:
+            query_end = datetime_end 
+        list_datatake_id += query_biomass_products(datetime_current, query_end, type, csv_writer, debug)
+        datetime_current = query_end
 
     if csv == True:
         file_handler.close()
@@ -108,6 +141,8 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
 
 
 def query_biomass_products(datetime_start: datetime, datetime_end: datetime, type: str, csv_writer = None, debug = False):
+    global list_item_id
+    global prev_item_id
     date_format        = '%Y-%m-%dT%H:%M:%SZ'
     str_datetime_start = datetime_start.strftime(date_format)
     str_datetime_end   = datetime_end.strftime(date_format)
@@ -132,36 +167,48 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
     
     items.sort( key = lambda x : x.properties['start_datetime'] )
     
-    date_format_ms = '%Y-%m-%dT%H:%M:%S.%fZ'
-    granule_start = datetime.strptime(items[0].properties['start_datetime'], date_format_ms)
-    granule_end   = datetime.strptime(items[0].properties['end_datetime'], date_format_ms)
-    datatake_id   = items[0].properties['eopf:datatake_id']
+    date_format_ms  = '%Y-%m-%dT%H:%M:%S.%fZ'
+    granule_start   = datetime.strptime(items[0].properties['start_datetime'], date_format_ms)
+    granule_end     = datetime.strptime(items[0].properties['end_datetime'], date_format_ms)
+
+    'Auxiliary products may not have datatake_id property'
+    datatake_id = None
+    try:
+        datatake_id = items[0].properties['eopf:datatake_id']
+    except KeyError:
+        datatake_id = 'N/A'
 
     for item in items:
-        list_item_id.append(item.id)
-        
-        if item.properties['eopf:datatake_id'] not in list_datatake_id:
-            if debug:
-                logger.debug(f"datatake#{item.properties['eopf:datatake_id']}")
-            list_datatake_id.append(item.properties['eopf:datatake_id'])
-        
-        if debug == True:
-            logger.debug(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {item.properties['eopf:datatake_id']}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
+        current_datatake_id = None
+        try:
+            current_datatake_id = item.properties['eopf:datatake_id']
+        except KeyError:
+            current_datatake_id = 'N/A'
 
+        if current_datatake_id not in list_datatake_id:
+            if debug == True:
+                logger.debug(f"datatake#{current_datatake_id}")
+            list_datatake_id.append(current_datatake_id)
+        
+        if debug == True and item.id != prev_item_id:
+            logger.debug(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {current_datatake_id}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
 
         if csv_writer is not None:
-            row = [
-                item.properties['eopf:datatake_id'],
-                item.properties['product:type'],
-                item.id,
-                item.properties['start_datetime'],
-                item.properties['end_datetime']
-            ]
-            csv_writer.writerow(row)
-
-        current_datatake_id = item.properties['eopf:datatake_id']
-        current_start       = datetime.strptime(item.properties['start_datetime'], date_format_ms)
-        current_end         = datetime.strptime(item.properties['end_datetime'], date_format_ms)
+            if item.id not in list_item_id:
+            # search by previous is not safe if query delta-time is shorter than product(s) overlap
+            # if prev_item_id != item.id: 
+                row = [
+                    current_datatake_id,
+                    item.properties['product:type'],
+                    item.id,
+                    item.properties['start_datetime'],
+                    item.properties['end_datetime']
+                ]
+                csv_writer.writerow(row)
+                list_item_id.append(item.id)
+ 
+        current_start    = datetime.strptime(item.properties['start_datetime'], date_format_ms)
+        current_end      = datetime.strptime(item.properties['end_datetime'], date_format_ms)
 
         if current_datatake_id == datatake_id:
             if (current_start < granule_start) or (current_end < granule_end):
@@ -169,6 +216,7 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
         datatake_id   = current_datatake_id
         granule_start = current_start
         granule_end   = current_end
+        prev_item_id  = item.id
 
     return list_datatake_id
 

@@ -34,7 +34,6 @@ def query_product(id: str, version: bool, silent: bool, debug: bool):
 
     """    
 
-
     if version == True:
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
         exit(0)
@@ -61,8 +60,15 @@ def query_product(id: str, version: bool, silent: bool, debug: bool):
     
     item = items[0]
 
+    'Auxiliary products may not have datatake_id property'
+    datatake_id = None
+    try:
+        datatake_id = item.properties['eopf:datatake_id']
+    except KeyError:
+        datatake_id = 'N/A'
+
     if debug == True:
-            logger.debug(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {item.properties['eopf:datatake_id']}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
+        logger.debug(f"ID: {item.id}, Type: {item.properties['product:type']}, Datatake: {datatake_id}, Start: {item.properties['start_datetime']}, End: {item.properties['end_datetime']}")
 
     print(json.dumps( item.to_dict() ) )
 

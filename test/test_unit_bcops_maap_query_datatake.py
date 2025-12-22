@@ -221,6 +221,62 @@ def test_TOM_GC1_MC1_S2_DGM__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+def test_TOM_GC1_MC1_S1_AUX_TEC(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd  = f'bcops_maap_query_datatake --type AUX_TEC___ --start 2025-11-21T00:29:45Z --end 2025-12-12T00:29:58Z -C -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC1_S1_AUX_ERP_RD(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd  = f'bcops_maap_query_datatake --type AUX_ERP_RD --start 2025-11-21T00:29:45Z --end 2025-12-12T00:29:58Z -C -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC1_S2_AUX_TEC(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd  = f'bcops_maap_query_datatake --type AUX_TEC___ --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC1_S2_AUX_ERP_RD(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd  = f'bcops_maap_query_datatake --type AUX_ERP_RD --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_l0_S3_RAW__0S(print_separator):
     """
     GIVEN test_conversion
