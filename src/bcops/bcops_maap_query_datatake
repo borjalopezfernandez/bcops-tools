@@ -92,8 +92,6 @@ def query_datatakes(start: str, end: str, type: str, csv: bool, version: bool, s
         print(f'Error parsing input datetimes: {e}')
         exit(1)
 
-    
-
     delta_total = datetime_end - datetime_start
 
     if delta_total <= time_delta:

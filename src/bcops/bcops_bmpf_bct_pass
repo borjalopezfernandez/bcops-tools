@@ -7,7 +7,7 @@ import importlib
 import pathlib
 import traceback
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 try:
     import eocfi
@@ -61,6 +61,9 @@ from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
 from importlib.metadata import version as package_version
+
+TIME_DELTA_SRM_ENTRY    = timedelta(days = 0.5)
+TIME_DELTA_SRM_EXIT     = timedelta(days = 2.5)
 
 import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
@@ -230,7 +233,7 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
             current_datetime_end = datetime_end
         else:
             current_datetime_end = swath["Stop_Time"]
-        query_bct_pass(current_datetime_start, current_datetime_end, file_gndbct, dict_file_swath[swath["id"]], zone_id, debug)
+        query_bct_pass(current_datetime_start, current_datetime_end, file_gndbct, dict_file_swath[swath['id']], zone_id, swath, debug)
         if current_datetime_end < swath["Stop_Time"]:
             break
         else:
@@ -248,10 +251,13 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
 
 # ===========================================================================================================================================================================
 
-def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct: str, file_swath: str, zone_id: str, debug: bool):
+def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct: str, file_swath: str, zone_id: str, swath: dict, debug: bool):
     if debug == True:
-        logger.info(f'Processing BCT in {os.path.basename(file_gndbct)} [{datetime_start} to {datetime_end}] => {file_swath}')
+        logger.info(f'Processing BCT in {os.path.basename(file_gndbct)} [{datetime_start} to {datetime_end}] => {file_swath} - {swath['id']}')
     
+    global TIME_DELTA_SRM_ENTRY
+    global TIME_DELTA_SRM_EXIT
+
     if debug == True:
         logger.info(f'xv_swath_id_init => {os.path.basename(file_swath)}')
     swath_mode      = XV_FILE_STF
@@ -306,7 +312,6 @@ def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct
         end_utc_mjd_2000    = bct_vis['xv_time_interval']['tstop']['utc_time']
         end_sec             = bct_vis['xv_time_interval']['tstop']['sec']
         duration            = end_sec - start_sec
-
         debug               = False
         processing_in       = start_utc_mjd_2000
         start_ascii_time    = xl_time_processing_to_ascii(proc_id_in,
@@ -315,17 +320,34 @@ def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct
                                               ascii_id_out,
                                               time_ref_out,
                                               debug)
+        
+        date_format         = '%Y-%m-%dT%H:%M:%S'
+        datetime_bct_start  = None
 
-        logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit}')
+        try:
+            datetime_bct_start      = datetime.strptime(start_ascii_time, date_format)
+        except Exception as e:
+            logger.error(f'Error parsing input datetimes: {e}')
+            exit(1)
+
+        if swath['id'] != 'SRM':
+            logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']}')
+        else:
+            if datetime_bct_start <= swath['Start_Time'] + TIME_DELTA_SRM_ENTRY:
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} entry (0.5 days)')
+            elif datetime_bct_start >= swath['Stop_Time'] - TIME_DELTA_SRM_EXIT:
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} exit (2.5 days)')
+            else:
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} not forbidden')
 
         if duration != 0.0:
             logger.warning('BCT visibility is made of single point which should have no duration')
-
 
     if debug == True:
         logger.info('xv_swath_id_close')
     xv_swath_id_close()
 
+# ===========================================================================================================================================================================
 
 def version():
     return package_version('bcops')
