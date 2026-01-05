@@ -179,6 +179,47 @@ def test_csv_TOM_GC1_MC1_S1_DGM__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+# PDGS-OPS-GEN-03
+# From L1a SCS to L1c STA Products Generation
+'''
+PDGS-CPF starts the L1c Stack generation providing, to the Stack processor, a set of L1 SCS
+products (Sx_SCS__1S) having the same values of:
+• Mission Phase ID
+• Global Coverage ID
+• Major Cycle ID
+• Swath ID
+• Track Number
+• Frame Number
+'''
+
+def test_TOM_GC1_MC1_S1_STA__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_STA__1S --start 2025-11-21T00:29:45Z --end 2025-12-12T00:29:58Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC1_S1_DGM__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_DGM__1S --start 2025-11-21T00:29:45Z --end 2025-12-12T00:29:58Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_TOM_GC1_MC1_S2_RAW__0S(print_separator):
     """
     GIVEN test_conversion

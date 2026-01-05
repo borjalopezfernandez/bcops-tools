@@ -21,11 +21,12 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel0
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1a
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1b
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1c
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAux
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAuxRest
 '''
 
-BIO_COLLECTIONS     = ['BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b', 'BiomassAux', 'BiomassAuxRest']
+BIO_COLLECTIONS     = ['BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b', 'BiomassLevel1c', 'BiomassAux', 'BiomassAuxRest']
 list_item_id        = []
 list_datatake_id    = []
 prev_item_id        = None
