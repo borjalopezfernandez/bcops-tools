@@ -94,9 +94,9 @@ def generate_afunav(start: str, end: str, station_id: str, rel_orbit: str, list:
     package_root_dir    = f'{dist_info_dir}/bcops'
 
     file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
-    file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'
+    file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270409T000000_0009.EOF'
     file_gnd_db       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_GND_DB_00000000T000000_99999999T999999_STATIONS_0001.EOF'
-    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_GNDTRACK_0001.EOF' 
+    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_GNDTRACK_0001.EOF' 
 
     if config == True:
         print(file_gnd_db)

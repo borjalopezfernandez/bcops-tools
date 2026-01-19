@@ -70,7 +70,7 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-11-22T00:00:00')
-@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-03-30T00:00:00')
+@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-04-07T00:00:00')
 @click.option('--config', '-c',      is_flag = True, default = False,    help = 'It shows the configuration')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
 @click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
@@ -98,13 +98,13 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
     package_root_dir  = f'{dist_info_dir}/bcops'
 
     file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
-    file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270331T000000_0006.EOF'
-    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_GNDTRACK_0001.EOF'
-    file_swt_1        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW1_CAL__0001.EOF'
-    file_swt_2        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW2_CAL__0001.EOF'
-    file_swt_3        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW3_CAL__0001.EOF'
-    file_swt_srm      = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270330T225538_SW2_CAL__0001.EOF'
-    file_misstl       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270331T003349_TOM______0001.EOF'
+    file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270409T000000_0009.EOF'
+    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_GNDTRACK_0001.EOF'
+    file_swt_1        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SW1_CAL__0001.EOF'
+    file_swt_2        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SW2_CAL__0001.EOF'
+    file_swt_3        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SW3_CAL__0001.EOF'
+    file_swt_srm      = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SRM_CAL__0001.EOF'
+    file_misstl       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270409T003354_TOM______0001.EOF'
     file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_BCT______0001.EOF'
     zone_id           = 'BCT'
 
@@ -225,10 +225,7 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
     for swath in list_swath:
         if debug == True:
             logger.debug(f'Swath ID: {swath["id"]} / Start: {swath["Start_Time"]} / Stop: {swath["Stop_Time"]}')
-        if current_datetime_start < swath["Start_Time"] or current_datetime_start > swath["Stop_Time"]:
-            if debug == True:
-                logger.debug('Swath starts after start datetime,  skipping')
-            continue
+
         if datetime_end < swath["Stop_Time"]:
             current_datetime_end = datetime_end
         else:
