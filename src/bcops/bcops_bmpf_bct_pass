@@ -317,7 +317,19 @@ def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct
                                               ascii_id_out,
                                               time_ref_out,
                                               debug)
+        # Nodal period in seconds
+        nodal_period        = 5890.945
         
+        if start_sec > nodal_period:
+            logger.error(f'T_ANX {start_sec} cannot be higher than the nodal period {nodal_period}')
+
+        direction = None
+
+        if start_sec <= (nodal_period / 4) or start_sec > ((nodal_period / 2) + (nodal_period / 4)):
+            direction = "Ascending"
+        else:
+            direction = "Descending"
+
         date_format         = '%Y-%m-%dT%H:%M:%S'
         datetime_bct_start  = None
 
@@ -328,14 +340,14 @@ def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct
             exit(1)
 
         if swath['id'] != 'SRM':
-            logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']}')
+            logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} / {direction}')
         else:
             if datetime_bct_start <= swath['Start_Time'] + TIME_DELTA_SRM_ENTRY:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} entry (0.5 days)')
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} entry (0.5 days) / {direction}')
             elif datetime_bct_start >= swath['Stop_Time'] - TIME_DELTA_SRM_EXIT:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} exit (2.5 days)')
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} exit (2.5 days) / {direction}')
             else:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} not forbidden')
+                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} not forbidden / {direction}')
 
         if duration != 0.0:
             logger.warning('BCT visibility is made of single point which should have no duration')
