@@ -12,3 +12,6 @@ Generation of X-band station unavailability file
 
 Generation of BCT / transponder opportunities
 - bcops_bmpf_bct_pass
+
+Generation of the product compact creation date
+- bcops_product_compact_creation_date

@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+import os
+
+from datetime import datetime, UTC
+import pytz
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--Now', '-N',         is_flag = True, default = False,  help = 'Generate compact creation date for current datetime')
+@click.option('--input', '-i',       is_flag = False,default = None,   help = 'Generate compact creation date for current datetime')
+@click.option('--version', '-v',     is_flag = True, default = False,  help = 'It shows the version')
+@click.option('--Debug', '-D',       is_flag = True, default = False,  help = 'Debug flag for verbose messages')
+
+
+def manage_product_compact_creation_date(now: bool, input: str, version: bool, debug: bool):
+
+    """
+    \b
+    Decode the product compact creation date as defined in BIO-ESA-EOPG-EEGS-TN-0052
+    Reference epoch 01/01/2000 00:00:00 encoded in base36 within 6 characters string:
+    BIO_S1_SCS__1S_20190123T143831_20190123T143852_I_G01_M01_C01_T075_F155_01_AFRS00
+    \b
+
+    """
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    if now == True:
+        tz              =   pytz.timezone('UTC')
+        epoch           =   datetime(2000, 1, 1, 0, 0, 0, tzinfo = tz)
+        current_dt      =   datetime.now(UTC)
+        delta           =   current_dt - epoch
+        total_seconds   =   int(delta.total_seconds())
+        base36_str      =   ''
+        chars           =   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        while total_seconds > 0:
+            remainder       =   total_seconds % 36
+            base36_str      =   chars[remainder] + base36_str
+            total_seconds   =   total_seconds // 36
+        base36_str      =   base36_str.rjust(6, '0')
+        print(f"Compact Creation Date (Now) : {base36_str}")
+    
+# ===========================================================================================================================================================================
+
+def version():
+    return package_version('bcops')
+
+# ===========================================================================================================================================================================
+
+if __name__ == '__main__':
+    manage_product_compact_creation_date()
+
+
+exit(0)
