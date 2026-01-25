@@ -1,29 +1,32 @@
 #!/usr/bin/env python
-
-from loguru import logger
-logger = logger.patch(lambda record: record.update(name=record["file"].name))
-
-import click
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-
 import os
-
-from fastkml import kml
+import click
+from fileinput import filename
+from loguru import logger
+from importlib.metadata import version as package_version
 from lxml import etree
 
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
-def parse_kml_file_get_datatakes(filename: str):
-    
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+KML_STYLESHEET   = {'Swath_1-S_MEAS__'  :'FFC8DC77', 
+                    'Swath_2-S_MEAS__'  :'FF0B9267', 
+                    'Swath_3-S_MEAS__'  :'FF0D6B31', 
+                    'SRM-S_MEAS__'      :'FFF58114'}
+
+def parse_kml_file_get_datatakes(filename: str, debug: bool = False) -> list:
     KML_NS      = "http://www.opengis.net/kml/2.2"
     ns          = {"kml": KML_NS}
-
     xml_file    = None
     xml_root    = None
-
-
     try:
+        if debug == True:
+            logger.debug('start parsing KML file to get datatakes')
         xml_file = etree.parse(filename)
-        xml_root = xml_file.getroot() 
+        xml_root = xml_file.getroot()
+        if debug == True:
+            logger.debug('end parsing KML file to get datatakes')
     except:
         logger.error(f'Error parsing {filename}')
         raise(f'Error parsing {filename}')
@@ -31,18 +34,24 @@ def parse_kml_file_get_datatakes(filename: str):
     path                = '//kml:Placemark'
     list_xml_datatake   = xml_root.xpath(path, namespaces=ns)
     list_datatakes      = []
-    for pm in list_xml_datatake:
-        datatake = {}
-        name     = pm.find("{http://www.opengis.net/kml/2.2}name")
-        print(name.text)
-        extended_data = pm.find("{http://www.opengis.net/kml/2.2}ExtendedData")
 
+    if debug == True:
+        logger.debug( f"Number of datatakes found: {len(list_xml_datatake)}" )
+    
+    for pm in list_xml_datatake:
+        datatake                = {}
+        name                    = pm.find('kml:name', ns)
+        extended_data           = pm.findall(".//kml:ExtendedData", ns)[0]
+        linear_ring             = pm.findall('.//kml:LinearRing', ns)[0]
+        linear_ring_coordinates = pm.findall('.//kml:coordinates', ns)[0]
+        format_coordinates      = etree.tostring(linear_ring_coordinates, pretty_print = True).decode('utf-8').strip().replace(' xmlns=\"http://www.opengis.net/kml/2.2\"', '')
+        datatake['coordinates'] = format_coordinates
+        datatake['coordinates'] = linear_ring_coordinates.text
+        
         for element_data in extended_data:
             element_name  = element_data.get('name')
             element_value = element_data.find('kml:value', ns).text
-            print(element_name)
-            print(element_value)
-           
+            
             if element_name == 'Datatake Id':
                 datatake['datatake_id'] = element_value
 
@@ -116,143 +125,42 @@ def parse_kml_file_get_datatakes(filename: str):
             if element_name == 'Warmup':
                 datatake['warm_up'] = element_value
 
-        print(datatake)
+        if debug == True:
+            logger.debug( "Placemark: " + name.text + " datatake_id: " + datatake['datatake_id'] )
+        
         list_datatakes.append(datatake)
-        exit(0)
-
-    exit(0)
-
-
-    print('PEDO0')
-    k = kml.KML.parse(filename)
-    print('PEDO1')
-    exit(0)
-    feature_datatakes = k.features[0].features[0].features
-    logger.info(f'Document - {k.features[0].name}')
-    print('PEDO')
-    exit(0)
-    list_datatakes = []
-
-    for feature in feature_datatakes:
-        print('PEDO')
-        exit(0)
-        print(feature)
-        exit(0)
-        datatake = {}
-        # logger.info(f'Feature name: {feature.name}')
-   
-        features = list(feature.features)
-        
-        for f in features:
-        # this is the <name>2025-11-24T00:17:41</name>
-        # logger.info(f'Feature name: {f.name}')
-        # logger.info(f'Feature description: {f.description}')
-        # logger.info(f'Feature geometry: {f.geometry.coords}')
-        # logger.info(f'Feature styleUrl: {f.style_url}')
-        # logger.info(f'Feature extendedData: {f.extended_data}')
-        
-            initial_format_coordinates = str( f.geometry.coords )
-            initial_format_coordinates = initial_format_coordinates.replace(", ", ",")
-            initial_format_coordinates = initial_format_coordinates.replace("),", " ")
-            initial_format_coordinates = initial_format_coordinates.replace("(", "")
-            initial_format_coordinates = initial_format_coordinates.replace(")", "")
-            datatake['coordinates']    = initial_format_coordinates
-            # print(initial_format_coordinates)
-
-            for element in f.extended_data.elements:
-                if element.name == 'Datatake Id':
-                    datatake['datatake_id'] = element.value
-
-                if element.name == 'Mode':
-                    match element.value:
-                        case 'Transponder Calibration Mode':
-                            datatake['mode'] = 'S_TRPCAL'
-                        case 'Measurement Mode':
-                            datatake['mode'] = 'S_MEAS__'
-                        case 'Simulation Mode':
-                            logger.info(f'Skipping: {element.value}')
-                            datatake['mode'] = 'S_SIMUL_'
-                            # continue
-                        case _:
-                            logger.warning(f'Unknown mode: {element.value}')
-                            datatake['mode'] = element.value
-
-                if element.name == 'Start Time':
-                    datatake['start_time'] = element.value
-
-                if element.name == 'Stop Time':
-                    datatake['stop_time'] = element.value
-                   
-                if element.name == 'Duration':
-                    datatake['duration'] = element.value
-
-                if element.name == 'Absolute Orbit':
-                    datatake['absolute_orbit'] = element.value
-
-                if element.name == 'Delta time from ANX':
-                    datatake['anx_time'] = element.value
-
-                if element.name == 'Phase':
-                    datatake['phase'] = element.value
-
-                if element.name == 'Sub Phase':
-                    datatake['sub_phase'] = element.value
-                    if element.value == 'SRM':
-                        datatake['target'] = 'SRM'
-                    if element.value == 'Imaging':
-                        datatake['target'] = 'Primary'
-
-                if element.name == 'Global Cycle':
-                    datatake['global_coverage'] = element.value
-
-                if element.name == 'Major Cycle':
-                    datatake['major_cycle'] = element.value
-
-                if element.name == 'Swath Id':
-                    match element.value:
-                        case '1':
-                            datatake['swath_id'] = 'Swath#1'
-                        case '2':
-                            datatake['swath_id'] = 'Swath#2'
-                        case '3':
-                            datatake['swath_id'] = 'Swath#3'
-                        case '4':
-                            datatake['swath_id'] = 'SRM'
-                        case _:
-                            logger.error(f'Unknown swath id: {element.value}')
-
-                if element.name == 'Repeat cycle':
-                    datatake['repeat_cycle'] = element.value
-
-                if element.name == 'Track':
-                    datatake['track'] = element.value
-
-                if element.name == 'GSTL Index':
-                    datatake['gstl_index'] = element.value
-
-                if element.name == 'Warmup':
-                    datatake['warm_up'] = element.value
-
-            list_datatakes.append(datatake)
-
-            print(datatake)
-            exit(0)
-            
-    return list_datatakes    
+    
+    return list_datatakes
 
 
 def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes: list):
+    logger.info(f'creating KML file - {filename}')
+
     current_phase           = list_datatakes[0]['phase']
     current_global_coverage = list_datatakes[0]['global_coverage']
     current_major_cycle     = list_datatakes[0]['major_cycle']
     current_swath_id        = list_datatakes[0]['swath_id']
-    
-    logger.info(f'creating KML file - {filename}')
-    ns   = '{http://www.opengis.net/kml/2.2}'
-    root = etree.Element(f'{ns}kml')
+
+    logger.info(f'Phase - {current_phase}')
+    logger.info(f'Global Coverage - {current_global_coverage}')
+    logger.info(f'Major Cycle     - {current_major_cycle}')
+    logger.info(f'Swath ID        - {current_swath_id}')
+
+    ns   = 'http://www.opengis.net/kml/2.2'
+    etree.register_namespace('kml', ns)
+    root = etree.Element('kml', namespace = ns)
     doc  = etree.SubElement(root, 'Document')
     name = etree.SubElement(doc, 'name')
     name.text = document_name
+
+    for stylesheet in KML_STYLESHEET:
+        style = etree.SubElement(doc, 'Style')
+        style.set('id', stylesheet)
+        linestyle = etree.SubElement(style, 'LineStyle')
+        color     = etree.SubElement(linestyle, 'color')
+        color.text= KML_STYLESHEET[stylesheet]
+        width     = etree.SubElement(linestyle, 'width')
+        width.text= '2'
 
     first_folder_phase = etree.SubElement(doc, 'Folder')
     name = etree.SubElement(first_folder_phase, 'name')
@@ -283,11 +191,6 @@ def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes:
     folder_swath_id        = first_folder_swath_id
 
     for datatake in list_datatakes:
-
-        print(f"Processing datatake")
-        print(datatake)
-        exit(0)
-
         # change of mission phase
         if datatake['phase'] != current_phase:
             current_phase = datatake['phase'] 
@@ -304,8 +207,9 @@ def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes:
 
         # change of major cycle
         if datatake['major_cycle'] != current_major_cycle:
-            logger.info('change of major cycle')
-            current_major_cycle = datatake['major_cycle'] 
+            # logger.info('change of major cycle')
+            current_major_cycle = datatake['major_cycle']
+            logger.info(f'Major Cycle     - {current_major_cycle}')
             folder_major_cycle  = etree.SubElement(folder_global_coverage, 'Folder')
             name = etree.SubElement(folder_major_cycle, 'name')
             name.text = current_major_cycle
@@ -314,8 +218,9 @@ def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes:
 
         # change of swath id
         if datatake['swath_id'] != current_swath_id:
-            logger.info('change of swath id')
+            # logger.info('change of swath id')
             current_swath_id = datatake['swath_id']
+            logger.info(f'Swath ID        - {current_swath_id}')
             folder_swath_id = etree.SubElement(folder_major_cycle, 'Folder')
             name = etree.SubElement(folder_swath_id, 'name')
             name.text = current_swath_id
@@ -337,6 +242,19 @@ def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes:
         begin.text = datatake['start_time']
         end      = etree.SubElement(timespan, 'end')
         end.text = datatake['stop_time']
+
+        styleurl = etree.SubElement(placemark, 'styleUrl')
+        match datatake['swath_id']:
+            case 'Swath#1':
+                styleurl.text = '#Swath_1-S_MEAS__'
+            case 'Swath#2':
+                styleurl.text = '#Swath_2-S_MEAS__'
+            case 'Swath#3':
+                styleurl.text = '#Swath_3-S_MEAS__'
+            case 'SRM':
+                styleurl.text = '#SRM-S_MEAS__'
+            case _:
+                logger.error(f'Unknown swath id: {datatake["swath_id"]}')
 
         extended = etree.SubElement(placemark, 'ExtendedData')
 
@@ -415,21 +333,21 @@ def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes:
         value = etree.SubElement(data, 'value')
         value.text = datatake['track']
 
-        linear_ring = etree.SubElement(placemark, 'LinearRing')
-        tesselate   = etree.SubElement(linear_ring, 'tessellate')
-        tesselate.text = 'true'
-        altitude    = etree.SubElement(linear_ring, 'altitudeMode')
-        altitude.text = 'clampToGround'
-        coordinates = etree.SubElement(linear_ring, 'coordinates')
+        linear_ring     = etree.SubElement(placemark, 'LinearRing')
+        tesselate       = etree.SubElement(linear_ring, 'tessellate')
+        tesselate.text  = 'true'
+        altitude        = etree.SubElement(linear_ring, 'altitudeMode')
+        altitude.text   = 'clampToGround'
+        coordinates     = etree.SubElement(linear_ring, 'coordinates')
         coordinates.text = datatake['coordinates']
 
     tree = etree.ElementTree(root)
-    tree.write(filename, encoding='utf-8', xml_declaration=True, pretty_print=True)
+    tree.write(filename, encoding = 'utf-8', xml_declaration = True, pretty_print = True)
 
 import click
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.command(context_settings = CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--file-input', '-i',     help = 'full path file with the input KML')
 @click.option('--file-output', '-o',    help = 'full path file with the output KML')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
@@ -441,7 +359,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def reshuffle_datatakes_kml(file_input, file_output, version, license, silent, debug):
     """
     \b
-    Reformat KML Biomass data-takes to the mission hierarchy:
+    Re-shuffle the KML Biomass data-takes to the mission hierarchy:
     > Phase: TOM|INT
     > Global Coverage
     > Major Cycle
@@ -472,9 +390,12 @@ def reshuffle_datatakes_kml(file_input, file_output, version, license, silent, d
         print(f"Error: --file-output is mandatory")
         exit(66)
 
-    logger.info('starting bioswath')
-    list_datatakes = parse_kml_file_get_datatakes(filename = file_input)
-    create_kml_file_datatakes(filename = file_output, document_name = 'my document', list_datatakes=list_datatakes)
+    logger.info('starting bcops_bmpf_kml_arrange')
+    list_datatakes = parse_kml_file_get_datatakes(filename = file_input, debug = debug)
+    create_kml_file_datatakes(filename = file_output, document_name = 'Biomass Core Operations Service', list_datatakes=list_datatakes)
+
+def version():
+    return package_version('bcops')
 
 if __name__ == '__main__':
     reshuffle_datatakes_kml()

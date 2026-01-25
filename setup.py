@@ -17,6 +17,7 @@ setup(
                                     'src/bcops/bcops_bmpf_afunav',
                                     'src/bcops/bcops_bmpf_downlink_idleframes',
                                     'src/bcops/bcops_bmpf_bct_pass',
+                                    'src/bcops/bcops_bmpf_kml_arrange',
                                     'src/bcops/bcops_product_compact_creation_date',
                                     'src/bcops/bcops_maap_query_datatake',
                                     'src/bcops/bcops_maap_query_product'
