@@ -1,0 +1,296 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import importlib
+import pathlib
+import traceback
+
+from datetime import datetime, timedelta
+
+try:
+    import eocfi
+except Exception as e:
+    print(f'Error importing eocfi: {e}')
+    print(f'Please install eocfi:') 
+    print('https://eop-cfi.esa.int/index.php/mission-cfi-software/eocfi-software')
+    exit(1)
+
+from eocfi.constants import XL_ASCII_CCSDSA
+from eocfi.constants import XL_PROC
+from eocfi.constants import XL_TIME_UTC
+from eocfi.constants import XV_FILE_STF
+from eocfi.constants import XL_MODEL_DEFAULT
+from eocfi.constants import XF_HEADER_FORMAT_EOF
+
+from eocfi.api    import version as eocfi_version
+from eocfi.api_xo import xo_check_library_version
+from eocfi.api_xl import xl_model_init
+from eocfi.api_xl import xl_time_ref_init_file
+from eocfi.api_xl import xl_time_ascii_to_processing
+from eocfi.api_xl import xl_time_processing_to_ascii
+from eocfi.api_xl import xl_time_close
+from eocfi.api_xo import xo_orbit_init_file
+from eocfi.api_xo import xo_time_to_orbit
+from eocfi.api_xo import xo_osv_compute
+from eocfi.api_xo import xo_osv_compute_extra
+from eocfi.api_xo import xo_orbit_get_val_time
+from eocfi.api_xo import xo_orbit_rel_from_abs
+from eocfi.api_xo import xo_position_on_orbit_to_time
+from eocfi.api_xo import xo_orbit_close
+from eocfi.api_xo import xo_verbose
+from eocfi.api_xv import xv_swath_id_init
+from eocfi.api_xv import xv_zonevistime_compute
+from eocfi.api_xv import xv_swath_id_close
+
+from eocfi.api_xp import xp_atmos_init
+from eocfi.constants import XV_FILE_STF
+from eocfi.constants import XP_STD_INIT
+from eocfi.constants import XL_ANGLE_TYPE_TRUE_LAT_EF
+from eocfi.constants import XL_NO_DER
+from eocfi.constants import XO_ORBIT_EXTRA_ALL_RESULTS
+
+OCM_DNX_LON_ENTRY = 159.7
+OCM_DNX_LON_EXIT  = 173.2
+
+import bcops.bcops_bmpf_parse_misstl as parser_misstl
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-11-22T00:00:00')
+@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-04-07T00:00:00')
+@click.option('--config', '-c',      is_flag = True, default = False,    help = 'It shows the configuration')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def generate_ocm_segment(start: str, end: str, config: bool, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Compute the OCM segments constraining DNX in Longitude 159.7 degrees - 173.2 degrees.
+    \b
+    """
+
+    global OCM_DNX_LON_ENTRY
+    global OCM_DNX_LON_EXIT
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        print(f'eocfi - {eocfi_version()}')
+        xo_check_library_version()
+        exit(0)
+
+    dist              = importlib.metadata.distribution('eocfi')
+    root_dist_info    = dist._path
+    dist_info_dir     = pathlib.Path(dist._path).parent
+    package_root_dir  = f'{dist_info_dir}/bcops'
+
+    file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
+    file_orbref       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270409T000000_0009.EOF'
+    file_swtssp       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_GNDTRACK_0001.EOF'
+    file_misstl       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270409T003354_TOM______0001.EOF'
+
+    if config == True:
+        logger.info(os.path.basename(file_orbref))
+        logger.info(os.path.basename(file_orbsct))
+        logger.info(os.path.basename(file_misstl))
+        logger.info(os.path.basename(file_swtssp))
+        exit(0)
+
+    list_input_files = []
+    list_input_files.append(os.path.splitext(os.path.basename(file_orbref))[0])
+    list_input_files.append(os.path.splitext(os.path.basename(file_swtssp))[0])
+    list_input_files.append(os.path.splitext(os.path.basename(file_orbsct))[0])
+
+    if start is None or end is None:
+        print('Error: start and end datetime parameters are required')
+        exit(1)
+
+    str_datemjd2000_start   = start
+    str_datemjd2000_end     = end
+    date_format             = '%Y-%m-%dT%H:%M:%S'
+    datetime_start          = None
+    datetime_end            = None
+    
+    try:
+        datetime_start      = datetime.strptime(str_datemjd2000_start, date_format)
+        datetime_end        = datetime.strptime(str_datemjd2000_end, date_format)
+    except Exception as e:
+        print(f'Error parsing input datetimes: {e}')
+        exit(1)
+
+    # Variables for time conversion
+    ascii_id_out        = XL_ASCII_CCSDSA
+    time_ref_in         = XL_TIME_UTC
+    proc_id_in          = XL_PROC
+    time_ref_out        = XL_TIME_UTC  
+    mode                = XL_MODEL_DEFAULT
+
+    if debug == True:
+        logger.info(f'xl_time_ascii_to_processing => {str_datemjd2000_start}')
+
+    ascii_id_in         = XL_ASCII_CCSDSA
+    time_ref_in         = XL_TIME_UTC
+    ascii_in            = str_datemjd2000_start
+    proc_id_out         = XL_PROC
+    time_ref_out        = XL_TIME_UTC
+    processing_out      = None
+    processing_out      = xl_time_ascii_to_processing(
+                                        ascii_id_in,
+                                        time_ref_in,
+                                        ascii_in,
+                                        proc_id_out,
+                                        time_ref_out,
+                                        debug)
+    mjd2000_start       = processing_out
+
+    if debug == True:
+        logger.debug(f'xl_time_ascii_to_processing {str_datemjd2000_start} => {mjd2000_start}')
+
+    ascii_in       = str_datemjd2000_end
+    processing_out = xl_time_ascii_to_processing(
+                                        ascii_id_in,
+                                        time_ref_in,
+                                        ascii_in,
+                                        proc_id_out,
+                                        time_ref_out,
+                                        debug)
+
+    mjd2000_end     = processing_out
+    swath_mode      = XV_FILE_STF
+    atmos_init_mode = XP_STD_INIT
+    atmos_model     = 0
+    atmos_init_file = None
+
+    if debug == True:
+        logger.info('xl_model_init')
+    xl_model_init(XL_MODEL_DEFAULT, debug)
+
+    if debug == True:
+        logger.info(f'xl_time_ref_init_file => {file_orbref}')
+    xl_time_ref_init_file(file_orbref, debug)
+
+    if debug == True:
+        logger.info(f'xo_orbit_init_file => {file_orbref}')
+    xo_orbit_init_file(file_orbref, debug)
+
+    if debug == True:
+        logger.info('xp_atmos_init')
+    xp_atmos_init(atmos_init_mode, atmos_model, atmos_init_file, debug)
+
+    
+    # Get the start & stop orbit numbers from the input datetimes
+   
+    if silent == False:
+        logger.info(f'xo_time_to_orbit {mjd2000_start}')
+    
+    orbit_time          = xo_time_to_orbit(time_ref_out, mjd2000_start, debug)
+    abs_orbit_start     = orbit_time['abs_orbit']
+    abs_orbit_anx_start = orbit_time['anx_time_seconds']
+
+    if silent == False:
+        logger.info(f'xo_time_to_orbit {mjd2000_end}')
+    
+    orbit_time          = xo_time_to_orbit(time_ref_out, mjd2000_end, debug)
+    abs_orbit_end       = orbit_time['abs_orbit']
+    abs_orbit_anx_end   = orbit_time['anx_time_seconds']
+
+    if silent == False:
+        logger.info(f'orbit range: {abs_orbit_start} - {abs_orbit_end}')
+
+    angle_type      = XL_ANGLE_TYPE_TRUE_LAT_EF
+    time_ref        = XL_TIME_UTC
+    deriv           = XL_NO_DER
+    ops_angle_anx   = 0.0
+    ops_angle_dnx   = 180.0
+    angle_rate      = 0.0
+    angle_rate_rate = 0.0
+
+    for abs_orbit in range(abs_orbit_start, abs_orbit_end + 1):
+
+        if silent == False:
+            logger.info(f'xo_position_on_orbit_to_time {abs_orbit} - OPS Angle {ops_angle_dnx} degrees')
+
+        time_position_dnx = xo_position_on_orbit_to_time(abs_orbit,
+                                        angle_type,
+                                        ops_angle_dnx,
+                                        angle_rate,
+                                        angle_rate_rate,
+                                        deriv,
+                                        time_ref,
+                                        debug)
+
+        if debug == True:
+            logger.debug(time_position_dnx)
+
+        if silent == False:
+            logger.info(f'xo_osv_compute(mjd2000={time_position_dnx['mjd2000']})')
+    
+        cs_coordinates = xo_osv_compute(time_ref, time_position_dnx['mjd2000'], debug)
+    
+        if silent == False:
+            logger.info(f'xo_osv_compute_extra')
+    
+        extra_choice = XO_ORBIT_EXTRA_ALL_RESULTS
+        osv_extra    = xo_osv_compute_extra(extra_choice, debug)
+        dnx_lon      = osv_extra['geolocation_coordinates'][0]['geocentric_longitude']
+        # I do not understand why the tuple indices
+        # TypeError: tuple indices must be integers or slices, not str
+
+        if debug == True:
+            logger.info(f"Orbit {abs_orbit} - DNX geocentric longitude {dnx_lon} degrees")
+
+        if dnx_lon >= OCM_DNX_LON_ENTRY and dnx_lon <= OCM_DNX_LON_EXIT:
+            time_position_anx       = xo_position_on_orbit_to_time(abs_orbit,
+                                        angle_type,
+                                        ops_angle_anx,
+                                        angle_rate,
+                                        angle_rate_rate,
+                                        deriv,
+                                        time_ref,
+                                        debug)
+
+            start_ocm_ascii_time    = xl_time_processing_to_ascii(proc_id_in,
+                                              time_ref_in,
+                                              time_position_anx['mjd2000'],
+                                              ascii_id_out,
+                                              time_ref_out,
+                                              debug)
+
+            logger.info(f"OCM for Orbit {abs_orbit} / {start_ocm_ascii_time} - DNX lon {dnx_lon} degrees")
+
+
+    # list_swath = parser_misstl.parse_mission_timeline_swath_cycle(file_misstl, logger, debug)
+
+    if debug == True:
+        logger.info('xo_orbit_close')
+    xo_orbit_close()
+
+    if debug == True:
+        logger.info('xl_time_close')
+    xl_time_close()
+
+    exit(0)
+
+# ===========================================================================================================================================================================
+
+
+# ===========================================================================================================================================================================
+
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    generate_ocm_segment()
+
+
+exit(0)
