@@ -33,24 +33,11 @@ from eocfi.api_xl import xl_time_ascii_to_processing
 from eocfi.api_xl import xl_time_processing_to_ascii
 from eocfi.api_xl import xl_time_close
 from eocfi.api_xo import xo_orbit_init_file
-from eocfi.api_xo import xo_orbit_get_val_time
-from eocfi.api_xo import xo_orbit_rel_from_abs
 from eocfi.api_xo import xo_orbit_close
-from eocfi.api_xo import xo_verbose
 from eocfi.api_xv import xv_swath_id_init
 from eocfi.api_xv import xv_zonevistime_compute
 from eocfi.api_xv import xv_swath_id_close
-
 from eocfi.api_xp import xp_atmos_init
-from eocfi.api_xf import xf_tree_create
-from eocfi.api_xf import xf_tree_create_root
-from eocfi.api_xf import xf_tree_create_header
-from eocfi.api_xf import xf_tree_set_fixed_header_items
-from eocfi.api_xf import xf_tree_add_child
-from eocfi.api_xf import xf_tree_add_next_sibling
-from eocfi.api_xf import xf_tree_add_attribute
-from eocfi.api_xf import xf_tree_set_string_node_value
-from eocfi.api_xf import xf_tree_write
 from eocfi.constants import XV_FILE_STF
 from eocfi.constants import XP_STD_INIT
 
@@ -70,19 +57,26 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ss / 2025-11-22T00:00:00')
 @click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ss / 2027-04-07T00:00:00')
+@click.option('--zone_id', '-z',                                            help = 'Zone_Id=BCT')
+@click.option('--List_zone', '-L',   is_flag = True, default = False,    help = 'It lists the available Zone_Id')
 @click.option('--config', '-c',      is_flag = True, default = False,    help = 'It shows the configuration')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
 @click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
 @click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
 
 
-def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent: bool, debug: bool):
+def generate_bct_pass(start: str, end: str, zone_id: str, list_zone: bool, config: bool, version: bool, silent: bool, debug: bool):
 
     """
     \b
-    Compute the BCT passes / opportunities.
+    Compute the BCT passes / opportunities for calibration stations.
+    Current configuration stands for the operational BCT at New Norcia (Australia)
+    and the VLBI stations in Australia:
+    > Hobart 26 (Australia)  - zone VLBI_HOBART_26
+    > Hobart 12 (Australia)  - zone VLBI_HOBART_12
+    > Katherine (Australia)  - zone VLBI_KATHERINE
+    > Yarragadee (Australia) - zone VLBI_YARRAGADEE 
     \b
-
     """
 
     if version == True:
@@ -104,8 +98,24 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
     file_swt_3        = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SW3_CAL__0001.EOF'
     file_swt_srm      = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_SWTREF_20251121T000514_20270407T222259_SRM_CAL__0001.EOF'
     file_misstl       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_MISSTL_20251121T002945_20270409T003354_TOM______0001.EOF'
-    file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_BCT______0001.EOF'
-    zone_id           = 'BCT'
+    file_gndbct       = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ZON_DB_00000000T000000_99999999T999999_TRPCAL___0001.EOF'
+    
+    if debug == True:
+        logger.info('xd_read_zone_id')
+    
+    list_zone_id = xd_read_zone_id(file_gndbct, debug)
+    if list_zone == True:
+        for zone_id in list_zone_id:
+            print(zone_id)
+        exit(0)
+
+    if zone_id != None and zone_id != '':
+        if zone_id not in list_zone_id:
+            print(f'Error zone_id {zone_id} not present in {file_gndbct}')
+            exit(99)
+
+    if zone_id == None or zone_id == '':
+        zone_id = list_zone_id[0]
 
     if config == True:
         logger.info(os.path.basename(file_orbref))
@@ -144,10 +154,10 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
         exit(1)
 
     if debug == True:
-        logger.info('xd_read_zone_id')
-    list_zone_id = xd_read_zone_id(file_gndbct, debug)
-    zone_id      = list_zone_id[0]
+        logger.info(f'xd_read_zone {zone_id}')
+
     xd_read_zone(file_gndbct, zone_id, debug)
+
     if debug == True:
         logger.info(f'Processing zone {zone_id}')
 
@@ -249,7 +259,7 @@ def generate_bct_pass(start: str, end: str, config: bool, version: bool, silent:
 
 def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct: str, file_swath: str, zone_id: str, swath: dict, debug: bool):
     if debug == True:
-        logger.info(f'Processing BCT in {os.path.basename(file_gndbct)} [{datetime_start} to {datetime_end}] => {file_swath} - {swath['id']}')
+        logger.info(f'Processing {zone_id} in {os.path.basename(file_gndbct)} [{datetime_start} to {datetime_end}] => {file_swath} - {swath['id']}')
     
     global TIME_DELTA_SRM_ENTRY
     global TIME_DELTA_SRM_EXIT
@@ -339,14 +349,14 @@ def query_bct_pass(datetime_start: datetime, datetime_end: datetime, file_gndbct
             exit(1)
 
         if swath['id'] != 'SRM':
-            logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} / {direction}')
+            logger.info(f'{zone_id} opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} / {direction}')
         else:
             if datetime_bct_start <= swath['Start_Time'] + TIME_DELTA_SRM_ENTRY:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} entry (0.5 days) / {direction}')
+                logger.info(f'{zone_id} opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} entry (0.5 days) / {direction}')
             elif datetime_bct_start >= swath['Stop_Time'] - TIME_DELTA_SRM_EXIT:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} exit (2.5 days) / {direction}')
+                logger.info(f'{zone_id} opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} exit (2.5 days) / {direction}')
             else:
-                logger.info(f'BCT opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} not forbidden / {direction}')
+                logger.info(f'{zone_id} opportunity => {start_ascii_time} / orbit {start_orbit} / {swath['id']} not forbidden / {direction}')
 
         if duration != 0.0:
             logger.warning('BCT visibility is made of single point which should have no duration')

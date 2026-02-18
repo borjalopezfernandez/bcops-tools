@@ -47,10 +47,30 @@ def test_options(print_separator):
     exit = os.system(cmd)
     assert(exit == 0)
 
+    cmd             = f'bcops_bmpf_bct_pass -L'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+
     cmd             = f'bcops_bmpf_bct_pass --config'
     logger.info(cmd)
     exit = os.system(cmd)
     assert(exit == 0)
+
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_errors(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_bct_pass -z WRONG_ZONE -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit != 0)
 
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
@@ -160,6 +180,92 @@ def test_parser_mission_timeline(print_separator):
     list_swath      = parser_misstl.parse_mission_timeline_swath_cycle(file_misstl, logger, debug = True)
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
+
+def test_config_vlbi(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    
+    cmd             = f'bcops_bmpf_bct_pass -c -z VLBI_HOBART_12'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+
+    cmd             = f'bcops_bmpf_bct_pass -c -z VLBI_HOBART_26'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+
+    cmd             = f'bcops_bmpf_bct_pass -c -z VLBI_KATHERINE'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+
+    cmd             = f'bcops_bmpf_bct_pass -c -z VLBI_YARRAGADEE'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_hobart_12(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_bct_pass -z VLBI_HOBART_12 -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_hobart_26(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_bct_pass -z VLBI_HOBART_26 -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_katherine(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_bct_pass -z VLBI_KATHERINE -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")    
+
+
+def test_yarragadee(print_separator):
+    """
+    GIVEN
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_bmpf_bct_pass -z VLBI_YARRAGADEE -s 2025-11-21T00:29:45 -e 2027-03-30T00:00:00'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert( exit >> 8 == 0 )
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
 def test_tom_mc1(print_separator):
