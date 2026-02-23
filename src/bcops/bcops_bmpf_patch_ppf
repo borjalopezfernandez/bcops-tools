@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+import os
+import shutil
+import pathlib
+
+try:
+    import eocfi
+except Exception as e:
+    print(f'Error importing eocfi: {e}')
+    print(f'Please install eocfi:') 
+    print('https://eop-cfi.esa.int/index.php/mission-cfi-software/eocfi-software')
+    exit(1)
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--file', '-f',                                            help = 'file MPL_PPF_1_ to be patched')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Patch the BMPF MPL_PPF_1 for idle frames transmission according to:
+    https://redmineng.exprivia.it/issues/5336
+    > Inuvik relative orbit #38
+    > Inuvik relative orbit #33
+    > Kiruna relative orbit #12
+    > Kiruna relative orbit #17
+    \b
+    """
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    if pathlib.Path(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}').exists() == False:
+        logger.error(f'file /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} not found')
+        exit(1)
+
+    if pathlib.Path(f'/data/mpf/BMPF/{file}_PATCHED').exists() == True:
+        logger.info(f'It seems {file} has been previously patched')
+        logger.error(f'file /data/mpf/BMPF/{file}_PATCHED already exists')
+        exit(1)
+
+    if pathlib.Path(f'/data/mpf/BMPF/{file}_ORIGINAL').exists() == True:
+        logger.info(f'It seems {file} has been previously patched')
+        logger.error(f'file /data/mpf/BMPF/{file}_ORIGINAL already exists')
+        exit(1)
+
+    logger.info(f'copy file /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} to /data/mpf/BMPF/{file}_ORIGINAL')
+    shutil.copyfile(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}', f'/data/mpf/BMPF/{file}_ORIGINAL')
+
+    logger.info(f'copy file /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} to /data/mpf/BMPF/{file}')
+    shutil.copyfile(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}', f'/data/mpf/BMPF/{file}')
+
+    logger.info('patching file /data/mpf/BMPF/{file}')
+
+    cmd = f'bcops_bmpf_downlink_idleframes --station-id IVK_____ -o 38 -f /data/mpf/BMPF/{file}'
+    logger.info(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        logger.error(f'Error running command: {cmd}')
+        exit(1)
+
+    cmd = f'bcops_bmpf_downlink_idleframes --station-id IVK_____ -o 33 -f /data/mpf/BMPF/{file}_patched'
+    logger.info(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        logger.error(f'Error running command: {cmd}')
+        exit(1)
+
+    cmd = f'bcops_bmpf_downlink_idleframes --station-id KSE_____ -o 12 -f /data/mpf/BMPF/{file}_patched_patched'
+    logger.info(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        logger.error(f'Error running command: {cmd}')
+        exit(1)
+
+    cmd = f'bcops_bmpf_downlink_idleframes --station-id KSE_____ -o 17 -f /data/mpf/BMPF/{file}_patched_patched_patched'
+    logger.info(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        logger.error(f'Error running command: {cmd}')
+        exit(1)
+
+    logger.info(f'copy file /data/mpf/BMPF/{file}_patched_patched_patched_patched to /data/mpf/BMPF/{file}_PATCHED')
+    shutil.copyfile(f'/data/mpf/BMPF/{file}_patched_patched_patched_patched', f'/data/mpf/BMPF/{file}_PATCHED')
+
+    logger.info(f'replace file to be sent /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} with patched file /data/mpf/BMPF/{file}_PATCHED')
+    shutil.copyfile(f'/data/mpf/BMPF/{file}_PATCHED', f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}')
+
+    exit(0)
+
+# ===========================================================================================================================================================================
+
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    patch_ppf_idle_frames()
+
+
+exit(0)

@@ -5,6 +5,7 @@ Query maap catalogue for Biomass products
 - bcops_maap_query_product
 
 Patch the PDGS plan file MPL_PPF_1 to transmit only X-band transfer frames
+- bcops_bmpf_patch_ppf
 - bcops_bmpf_downlink_idleframes
 
 Generation of X-band station unavailability file
