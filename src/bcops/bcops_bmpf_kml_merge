@@ -1,0 +1,164 @@
+import xml.etree.ElementTree as ET
+from copy import deepcopy
+
+from lxml import etree
+from datetime import datetime
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+# -------- CONFIG --------
+KML_FILE_1 = "BIO_OPER_MPL_PPF_1__20250519T000000_20260216T000000_20260120T122553.kml"
+KML_FILE_2 = "BIO_OPER_MPL_PPF_2__20250519T000000_20260216T000000_20260120T122553.kml"
+OUTPUT_KML = "combined_sorted.kml"
+# ------------------------
+
+KML_STYLESHEET   = {'Swath_1-S_MEAS__'  :'FFC8DC77', 
+                    'Swath_2-S_MEAS__'  :'FF0B9267', 
+                    'Swath_3-S_MEAS__'  :'FF0D6B31', 
+                    'SRM-S_MEAS__'      :'FFF58114',
+                    'Swath_1-S_TRPCAL'  :'FF8E59A9',
+                    'Swath_2-S_TRPCAL'  :'FFFFCA59',
+                    'Swath_3-S_TRPCAL'  :'FF6659A9',
+                    'SRM-S_TRPCAL'      :'FFA98E59',
+                    }
+
+NS = {"kml": "http://www.opengis.net/kml/2.2"}
+ET.register_namespace("", NS["kml"])
+
+
+def create_kml_file_datatakes(filename: str, document_name: str, list_datatakes: list):
+    logger.info(f'creating KML file - {filename}')
+ 
+    ns   = 'http://www.opengis.net/kml/2.2'
+    etree.register_namespace('kml', ns)
+    root = etree.Element('kml', namespace = ns)
+    doc  = etree.SubElement(root, 'Document')
+    name = etree.SubElement(doc, 'name')
+    name.text = document_name
+
+    for stylesheet in KML_STYLESHEET:
+        style     = etree.SubElement(doc, 'Style')
+        style.set('id', stylesheet)
+        linestyle = etree.SubElement(style, 'LineStyle')
+        color     = etree.SubElement(linestyle, 'color')
+        color.text= KML_STYLESHEET[stylesheet]
+        width     = etree.SubElement(linestyle, 'width')
+        width.text= '2'
+
+    root_folder = etree.SubElement(doc, 'Folder')
+    name        = etree.SubElement(root_folder, 'name')
+    name.text   = 'BIOMASS'
+    
+    for datatake in list_datatakes:
+        # print ( etree.tostring(datatake, pretty_print = True).decode('utf-8').strip().replace(' xmlns=\"http://www.opengis.net/kml/2.2\"', '') )
+        # exit(0)
+
+        mode = placemark_mode(datatake)
+        if mode == "S_SIMUL_":
+            logger.info(f"Skipping datatake Simulation mode - {placemark_name(datatake)}")
+            continue
+        folder_datatake = etree.SubElement(root_folder, 'Folder')
+        name            = etree.SubElement(folder_datatake, 'name')
+        name.text       = mode
+        folder_datatake.append(deepcopy(datatake))
+
+        break
+
+    logger.info(f"Writing combined KML file - {filename}")
+    tree = etree.ElementTree(root)
+    tree.write(filename, encoding = 'utf-8', xml_declaration = True, pretty_print = True)
+
+
+def placemark_mode(pm):
+    extended_data = pm.findall(".//kml:ExtendedData", NS)[0]
+    #print(etree.tostring(extended_data, pretty_print=True).decode())
+    extended_data_mode = None
+    for element_data in extended_data:
+        if element_data.get('name') != "Mode":
+            continue
+        extended_data_mode = element_data.find('kml:value', ns).text
+        print(extended_data_mode)
+        
+        if extended_data_mode == "Measurement Mode":
+            return "S_MEAS__"
+        
+        if extended_data_mode == "Transponder Calibration Mode":
+            return "S_TRPCAL"
+        
+        if extended_data_mode == "Simulation Mode":
+            return "S_SIMUL_"
+
+        raise RuntimeError(f"Unknown Mode - {extended_data_mode}")
+
+
+def placemark_name(pm):
+    name = pm.find("kml:name", NS)
+    return name.text.strip() if name is not None else ""
+
+
+def folder_key(folder):
+    name = folder.find("kml:name", NS)
+    return name.text.strip() if name is not None else "__NONAME__"
+
+
+def collect_folders(doc):
+    """
+    Returns dict:
+    { folder_name : folder_element }
+    """
+    folders = {}
+    for folder in doc.findall("kml:Folder", NS):
+        print(folders)
+        folders[folder_key(folder)] = folder
+    return folders
+
+
+def get_placemarks(folder):
+    return folder.findall("kml:Placemark", NS)
+
+
+# Load both KMLs
+
+KML_NS      = "http://www.opengis.net/kml/2.2"
+ns          = {"kml": KML_NS}
+
+xml_file_1 = etree.parse(KML_FILE_1)
+xml_root_1 = xml_file_1.getroot() 
+
+xml_file_2 = etree.parse(KML_FILE_2)
+xml_root_2 = xml_file_2.getroot() 
+
+path                    = '//kml:Placemark'
+
+list_xml_datatake_1     = xml_root_1.xpath(path, namespaces=ns)
+list_datatake_1         = [] 
+logger.debug( f"Number of Nominal datatakes found: {len(list_xml_datatake_1)}" )
+
+'''
+for pm in list_xml_datatake_1:
+    name = pm.find('kml:name', ns)
+    print(name.text)
+'''
+
+list_xml_datatake_2     = xml_root_2.xpath(path, namespaces=ns)
+list_datatake_2         = [] 
+logger.debug( f"Number of ISRO datatakes found: {len(list_xml_datatake_2)}" )
+
+'''
+  
+for pm in list_xml_datatake_2:
+    name = pm.find('kml:name', ns)
+    print(name.text)
+
+'''  
+
+list_xml_combined_datatake = list_xml_datatake_1 + list_xml_datatake_2
+list_xml_sorted_datatake   = sorted( list_xml_combined_datatake, key = placemark_name )     
+
+logger.debug( f"Number of Total datatakes: {len(list_xml_sorted_datatake)}" )
+
+logger.info(f"Creating combined KML file with sorted datatakes - {OUTPUT_KML}")
+create_kml_file_datatakes(filename = OUTPUT_KML, document_name = 'Biomass Core Operations Service', list_datatakes = list_xml_sorted_datatake)
+
+exit(0)
