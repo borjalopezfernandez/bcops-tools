@@ -1,10 +1,20 @@
+#!/usr/bin/env python
+print("PEDO")
+'''
+
+import os
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 
 from lxml import etree
 from datetime import datetime
 
+from importlib.metadata import version as package_version
+
 from loguru import logger
+
+
+
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
 # -------- CONFIG --------
@@ -118,47 +128,83 @@ def get_placemarks(folder):
     return folder.findall("kml:Placemark", NS)
 
 
+
+import click
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+@click.command(context_settings = CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--file-input-1', '-i1',     help = 'full path file with the input KML')
+@click.option('--file-input-2', '-i2',     help = 'full path file with the second input KML')
+@click.option('--file-output', '-o',       help = 'full path file with the output KML')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--License', '-L',     is_flag = True, default = False,    help = 'Print License')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Silent flag to avoid log messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def merge_datatakes_kml(file_input_1, file_input_2, file_output, version, license, silent, debug):
+    """
+    \b
+    Merge two the KML Biomass data-takes files (one with nominal datatakes and other with ISRO datatakes) into a single KML file with all datatakes sorted by name. 
+    The output KML file is compatible with Google Earth and can be used to visualize the datatakes in a geospatial context. 
+    \b
+    """
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    if license == True:
+        print(f"{os.path.basename(__file__)} - TBW license")
+        # print_license()
+        exit(0)
+
+    if silent == True and debug == True:
+        print(f"Error: --Silent and --Debug flags are mutually exclusive")
+        exit(66)
+
 # Load both KMLs
 
-KML_NS      = "http://www.opengis.net/kml/2.2"
-ns          = {"kml": KML_NS}
+    KML_NS      = "http://www.opengis.net/kml/2.2"
+    ns          = {"kml": KML_NS}
 
-xml_file_1 = etree.parse(KML_FILE_1)
-xml_root_1 = xml_file_1.getroot() 
+    xml_file_1 = etree.parse(KML_FILE_1)
+    xml_root_1 = xml_file_1.getroot() 
 
-xml_file_2 = etree.parse(KML_FILE_2)
-xml_root_2 = xml_file_2.getroot() 
+    xml_file_2 = etree.parse(KML_FILE_2)
+    xml_root_2 = xml_file_2.getroot() 
 
-path                    = '//kml:Placemark'
+    path                    = '//kml:Placemark'
 
-list_xml_datatake_1     = xml_root_1.xpath(path, namespaces=ns)
-list_datatake_1         = [] 
-logger.debug( f"Number of Nominal datatakes found: {len(list_xml_datatake_1)}" )
+    list_xml_datatake_1     = xml_root_1.xpath(path, namespaces=ns)
+    list_datatake_1         = [] 
+    logger.debug( f"Number of Nominal datatakes found: {len(list_xml_datatake_1)}" )
+
+
+
+ 
+
+
+
+
+    list_xml_datatake_2     = xml_root_2.xpath(path, namespaces=ns)
+    list_datatake_2         = [] 
+    logger.debug( f"Number of ISRO datatakes found: {len(list_xml_datatake_2)}" )
+
+
+
+    list_xml_combined_datatake = list_xml_datatake_1 + list_xml_datatake_2
+    list_xml_sorted_datatake   = sorted( list_xml_combined_datatake, key = placemark_name )     
+
+    logger.debug( f"Number of Total datatakes: {len(list_xml_sorted_datatake)}" )
+
+    logger.info(f"Creating combined KML file with sorted datatakes - {OUTPUT_KML}")
+    create_kml_file_datatakes(filename = OUTPUT_KML, document_name = 'Biomass Core Operations Service', list_datatakes = list_xml_sorted_datatake)
+
+
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    print('pedo')
+    merge_datatakes_kml()
 
 '''
-for pm in list_xml_datatake_1:
-    name = pm.find('kml:name', ns)
-    print(name.text)
-'''
-
-list_xml_datatake_2     = xml_root_2.xpath(path, namespaces=ns)
-list_datatake_2         = [] 
-logger.debug( f"Number of ISRO datatakes found: {len(list_xml_datatake_2)}" )
-
-'''
-  
-for pm in list_xml_datatake_2:
-    name = pm.find('kml:name', ns)
-    print(name.text)
-
-'''  
-
-list_xml_combined_datatake = list_xml_datatake_1 + list_xml_datatake_2
-list_xml_sorted_datatake   = sorted( list_xml_combined_datatake, key = placemark_name )     
-
-logger.debug( f"Number of Total datatakes: {len(list_xml_sorted_datatake)}" )
-
-logger.info(f"Creating combined KML file with sorted datatakes - {OUTPUT_KML}")
-create_kml_file_datatakes(filename = OUTPUT_KML, document_name = 'Biomass Core Operations Service', list_datatakes = list_xml_sorted_datatake)
-
-exit(0)
