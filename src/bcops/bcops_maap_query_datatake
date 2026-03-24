@@ -70,7 +70,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     Auxiliary products are datatake-less and no grouping is performed.
     \b
 
-    """    
+    """
 
     if version == True:
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
@@ -156,12 +156,6 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
     str_datetime_start = datetime_start.strftime(date_format)
     str_datetime_end   = datetime_end.strftime(date_format)
     URL_LANDING_PAGE   = 'https://catalog.maap.eo.esa.int/catalogue/'
-    if debug == True:
-        logger.debug(f'Connecting to {URL_LANDING_PAGE} to query collections: {BIO_COLLECTIONS}')
-    api                = Client.open(URL_LANDING_PAGE) 
-    if debug == True:
-        logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products')
-    
     datetime_tom_phase = datetime(2025, 11, 21, 0, 29, 45, tzinfo = pytz.utc)
 
     if type[-7:] == 'RAW__0S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
@@ -206,10 +200,16 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
     if type[-7:] == '_TEC___':
         bio_collections = ['BiomassAuxRestIOC', 'BiomassAuxRest']
 
-    if debug:
-        logger.debug(f'Querying collections: {bio_collections}')
+    if debug == True:
+        logger.debug(f'Connecting to {URL_LANDING_PAGE}')
+    
+    api  = Client.open(URL_LANDING_PAGE) 
+    
+    if debug == True:
+        logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products in collections {bio_collections}')
 
     results = None
+
     if baseline is not None:
         results = api.search(
             method      = "GET",
