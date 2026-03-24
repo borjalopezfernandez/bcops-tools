@@ -29,5 +29,5 @@ setup(
     extras_require          =   {},
 )
 
-print("Completed execution of python setup pyeocfi:")
+print("Completed execution of python setup bcops-tools:")
 print("\U0001F606")
