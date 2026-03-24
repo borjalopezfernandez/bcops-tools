@@ -44,12 +44,39 @@ def test_COM_S1_RAW__0S(print_separator):
     THEN
     """
     logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
-    cmd             = f'bcops_maap_query_datatake --type S1_RAW__0S --start 2025-05-22T09:00:00Z --end 2025-11-02T00:29:58Z'
+    cmd             = f'bcops_maap_query_datatake --type S1_RAW__0S --start 2025-05-22T09:00:00Z --end 2025-10-06T20:51:53Z'
     logger.info(cmd)
     exit = os.system(cmd)
     assert(exit == 0)
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
+
+def test_COM4_S2_RAW__0S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S2_RAW__0S --start 2025-10-06T20:51:53Z --end 2025-11-02T00:29:58Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_COM5_S3_RAW__0S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S3_RAW__0S --start 2025-11-02T20:48:54Z --end 2025-11-21T00:29:58Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
 def test_TOM_GC1_MC1_S1_RAW__0S(print_separator):
