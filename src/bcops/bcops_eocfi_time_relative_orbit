@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+
+import cmd
+from doctest import debug
+import os
+import json
+import subprocess
+import pathlib
+
+try:
+    import eocfi
+except Exception as e:
+    print(f'Error importing eocfi: {e}')
+    print(f'Please install eocfi:') 
+    print('https://eop-cfi.esa.int/index.php/mission-cfi-software/eocfi-software')
+    exit(1)
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--time', '-t',                                            help = 'UTC in format YYYYMMDDhhmmss / 20261022T000000')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def convert_time_to_relative_orbit(time: str, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Convert a UTC time to the relative orbit number
+    \b
+    """
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    if time is None:
+        logger.error('Please provide a time in format YYYYMMDDhhmmss / 20261022T000000')
+        exit(1)
+
+    cmd = f'bcops_bmpf_downlink_idleframes -c'
+    if debug == True:
+        logger.debug(cmd)
+
+    mpl_orbref = None
+    mpl_orbsct = None
+    output = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    
+    for line in output.splitlines():
+        if 'MPL_ORBREF' in line:
+            mpl_orbref = line.strip()
+
+        if 'MPL_ORBSCT' in line:
+            mpl_orbsct = line.strip()
+
+    if debug == True:
+        logger.debug(f'MPL_ORBREF: {mpl_orbref}')
+        logger.debug(f'MPL_ORBSCT: {mpl_orbsct}')
+    
+    cmd = f'eocfi_time -f {mpl_orbref} -i UTC={time} -S'
+
+    if debug == True:
+        logger.debug(cmd)
+
+    output  = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    mjd2000 = output.strip()
+
+    cmd = f'eocfi_time_orbit -f {mpl_orbsct} -i {mjd2000} -S'
+
+    if debug == True:
+        logger.debug(cmd)
+
+    output      = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    abs_orbit   = json.loads( output )['orbit']['abs_orbit']
+
+    cmd = f'eocfi_orbit -o {mpl_orbsct} -a {abs_orbit} -S'
+    if debug == True:
+        logger.debug(cmd)
+    output      = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    
+    print( json.loads( output.splitlines()[1] )['rel_orbit'] )
+
+    exit(0)
+
+# ===========================================================================================================================================================================
+
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    convert_time_to_relative_orbit()
+
+
+exit(0)

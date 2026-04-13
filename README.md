@@ -8,6 +8,9 @@ Patch the PDGS plan file MPL_PPF_1 to transmit only X-band transfer frames
 - bcops_bmpf_patch_ppf
 - bcops_bmpf_downlink_idleframes
 
+Compute the relative orbit from a UTC datetime
+- bcops_eocfi_time_relative_orbit
+
 Generation of X-band station unavailability file
 - bcops_bmpf_afunav
 
