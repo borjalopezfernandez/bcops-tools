@@ -31,6 +31,13 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
 
     """
     \b
+
+    First update to address
+    https://redmineng.exprivia.it/issues/6603
+    CW#18 2026
+    > Inuvik relative orbit #38
+    > Kiruna relative orbit #17
+    
     Patch the BMPF MPL_PPF_1 for idle frames transmission according to:
     https://redmineng.exprivia.it/issues/5336
     > Inuvik relative orbit #38
@@ -64,7 +71,7 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
     logger.info(f'copy file /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} to /data/mpf/BMPF/{file}')
     shutil.copyfile(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}', f'/data/mpf/BMPF/{file}')
 
-    logger.info('patching file /data/mpf/BMPF/{file}')
+    logger.info(f'patching file /data/mpf/BMPF/{file}')
 
     cmd = f'bcops_bmpf_downlink_idleframes --station-id IVK_____ -o 38 -f /data/mpf/BMPF/{file}'
     logger.info(cmd)
@@ -72,6 +79,18 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
     if ret != 0:
         logger.error(f'Error running command: {cmd}')
         exit(1)
+
+    cmd = f'bcops_bmpf_downlink_idleframes --station-id KSE_____ -o 17 -f /data/mpf/BMPF/{file}_patched'
+    logger.info(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        logger.error(f'Error running command: {cmd}')
+        exit(1)
+
+    '''
+
+    # Sequence do matters !
+    # Checkout filenames in the sequence !
 
     cmd = f'bcops_bmpf_downlink_idleframes --station-id IVK_____ -o 33 -f /data/mpf/BMPF/{file}_patched'
     logger.info(cmd)
@@ -86,16 +105,10 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
     if ret != 0:
         logger.error(f'Error running command: {cmd}')
         exit(1)
+    '''
 
-    cmd = f'bcops_bmpf_downlink_idleframes --station-id KSE_____ -o 17 -f /data/mpf/BMPF/{file}_patched_patched_patched'
-    logger.info(cmd)
-    ret = os.system(cmd)
-    if ret != 0:
-        logger.error(f'Error running command: {cmd}')
-        exit(1)
-
-    logger.info(f'copy file /data/mpf/BMPF/{file}_patched_patched_patched_patched to /data/mpf/BMPF/{file}_PATCHED')
-    shutil.copyfile(f'/data/mpf/BMPF/{file}_patched_patched_patched_patched', f'/data/mpf/BMPF/{file}_PATCHED')
+    logger.info(f'copy file /data/mpf/BMPF/{file}_patched_patched to /data/mpf/BMPF/{file}_PATCHED')
+    shutil.copyfile(f'/data/mpf/BMPF/{file}_patched_patched', f'/data/mpf/BMPF/{file}_PATCHED')
 
     logger.info(f'replace file to be sent /data/mpf/BMPF/data/outgoing/MPL_PPF___/{file} with patched file /data/mpf/BMPF/{file}_PATCHED')
     shutil.copyfile(f'/data/mpf/BMPF/{file}_PATCHED', f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}')
