@@ -31,7 +31,6 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
 
     """
     \b
-
     First update to address
     https://redmineng.exprivia.it/issues/6603
     CW#18 2026
