@@ -28,21 +28,218 @@ def _init_patching_dates():
     list_patching_dates = []
     patching_element    = {}
     
+    '''
+    SW#1 Kiruna:
+    - 2026-04-24T02:45 / relative orbit#17
+    - 2026-07-05T02:49 / relative orbit#17
+    - 2026-09-16T18:21 / relative orbit#41
+    - 2026-11-27T18:26 / relative orbit#41
+    '''
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-04-24T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-07-05T02:49:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 41
+    patching_element['date_start']      = datetime.strptime('UTC=2026-09-16T18:21:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 41
+    patching_element['date_start']      = datetime.strptime('UTC=2026-11-27T18:26:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    '''
+    SW#1 Inuvik:
+    - 2026-02-12T13:02 / relative orbit#38
+    - 2026-04-25T13:06 / relative orbit#38
+    - 2026-09-15T04:43 / relative orbit#18
+    - 2026-11-26T04:47 / relative orbit#18
+    '''
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
-    patching_element['date_start']      = datetime.strptime('UTC=2026-03-12T00:00:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    # Plus 7 RC
+    patching_element['date_start']      = datetime.strptime('UTC=2026-02-12T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
     patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
-    logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 38
+    patching_element['date_start']      = datetime.strptime('UTC=2026-04-25T13:06:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 18
+    patching_element['date_start']      = datetime.strptime('UTC=2026-09-15T04:43:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#1'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 18
+    patching_element['date_start']      = datetime.strptime('UTC=2026-11-26T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    '''
+    SW#2 Kiruna
+    - 2026-03-04T02:40 / relative orbit#17
+    - 2026-05-15T02:45 / relative orbit#17
+    - 2026-07-26T02:49 / relative orbit#17
+    - 2026-12-18T18:26 / relative orbit#41
+    - 2027-02-28T18:30 / relative orbit#41
+    '''
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-03-04T02:40:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-05-15T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-07-26T02:49:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
     
     patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
     patching_element['station_id']      = 'KSE_____'
-    patching_element['relative_orbit']  = 12
-    patching_element['date_start']      = datetime.strptime('UTC=2026-03-02T00:00:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    # Plus 7 RC
+    patching_element['relative_orbit']  = 41
+    patching_element['date_start']      = datetime.strptime('UTC=2026-12-18T18:26:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
     patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
-    logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 41
+    patching_element['date_start']      = datetime.strptime('UTC=2027-02-28T18:30:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    '''
+    SW#2 Inuvik:
+    - 2026-03-05T13:02 / relative orbit#38
+    - 2026-12-17T04:47 / relative orbit#18
+    - 2027-01-01T04:47 / relative orbit#18
+
+    '''
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 38
+    patching_element['date_start']      = datetime.strptime('UTC=2026-03-05T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 18
+    patching_element['date_start']      = datetime.strptime('UTC=2026-12-17T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#2'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 18
+    patching_element['date_start']      = datetime.strptime('UTC=2027-01-01T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    '''
+    SW#3 Kiruna:
+    - 2026-03-25T02:40 / relative orbit#17
+    - 2026-06-05T02:45 / relative orbit#17
+    '''
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#3'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-03-25T02:40:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+    
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#3'
+    patching_element['station_id']      = 'KSE_____'
+    patching_element['relative_orbit']  = 17
+    patching_element['date_start']      = datetime.strptime('UTC=2026-06-05T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
+    list_patching_dates.append(patching_element)
+
+    '''
+    SW#3 Inuvik:
+    - 2026-03-26T13:02 / relative orbit#38
+    '''
+
+    patching_element = patching_element.copy()
+    patching_element['swath']           = 'SW#3'
+    patching_element['station_id']      = 'IVK_____'
+    patching_element['relative_orbit']  = 38
+    patching_element['date_start']      = datetime.strptime('UTC=2026-03-26T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
     return list_patching_dates
@@ -52,31 +249,29 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--file', '-f',                                            help = 'file MPL_PPF_1_ to be patched')
+@click.option('--Config', '-C',      is_flag = True, default = False,    help = 'shows patching configuration')
 @click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
 @click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
 @click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
 
-def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
+def patch_ppf_idle_frames(file: str, config: bool, version: bool, silent: bool, debug: bool):
 
     """
     \b
-    First update to address
-    https://redmineng.exprivia.it/issues/6603
-    CW#18 2026
-    > Inuvik relative orbit #38
-    > Kiruna relative orbit #17
-    
     Patch the BMPF MPL_PPF_1 for idle frames transmission according to:
-    https://redmineng.exprivia.it/issues/5336
-    > Inuvik relative orbit #38
-    > Inuvik relative orbit #33
-    > Kiruna relative orbit #12
-    > Kiruna relative orbit #17
+    https://redmineng.exprivia.it/issues/6603
     \b
     """
 
     if version == True:
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    list_patching_dates = _init_patching_dates()
+
+    if config == True:
+        for patching_date in list_patching_dates:
+            logger.info(f'Patching config: {patching_date['swath']} {patching_date['date_start']} to {patching_date['date_end']} station {patching_date['station_id']} and relative orbit {patching_date['relative_orbit']}')
         exit(0)
 
     if pathlib.Path(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}').exists() == False:
@@ -106,7 +301,7 @@ def patch_ppf_idle_frames(file: str, version: bool, silent: bool, debug: bool):
     val_str_end         = fhr['val_stop_date']
     val_datetime_start  = datetime.strptime(val_str_start, 'UTC=%Y-%m-%dT%H:%M:%S').replace(tzinfo = ZoneInfo('UTC'))
     val_datetime_end    = datetime.strptime(val_str_end, 'UTC=%Y-%m-%dT%H:%M:%S').replace(tzinfo = ZoneInfo('UTC'))
-    list_patching_dates = _init_patching_dates()
+    
     original_file       = file
     
     for patching_date in list_patching_dates:
