@@ -304,6 +304,34 @@ def test_TOM_GC1_MC1_S1_STA__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+def test_TOM_GC1_MC1_S2_STA__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S2_STA__1S --start 2025-12-12T00:29:58Z --end 2026-01-12T00:30:12Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC1_S3_STA__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S3_STA__1S --start 2026-01-12T00:30:12Z --end 2026-02-01T00:30:31Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_TOM_GC1_MC1_S1_DGM__1S(print_separator):
     """
     GIVEN test_conversion
