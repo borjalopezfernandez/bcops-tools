@@ -107,6 +107,20 @@ def test_COM2_S1_RAW__0S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+def test_COM3_S1_RAW__0S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_RAW__0S --start 2025-09-09T20:53:59Z --end 2025-10-03T20:51:55Z'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_COM4_S2_RAW__0S(print_separator):
     """
     GIVEN test_conversion
