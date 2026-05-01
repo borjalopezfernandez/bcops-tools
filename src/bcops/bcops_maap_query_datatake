@@ -18,6 +18,7 @@ import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
 
 '''
+> https://explorer.maap.eo.esa.int
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel0IOC
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1aIOC
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1bIOC
@@ -226,8 +227,14 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
             datetime    = [datetime_start, datetime_end]
         )
 
-    items = list(results.items())
-    
+    items = []
+    try:
+        items = list(results.items())
+    except Exception as e:
+        logger.error(f"Error when querying {type} products between {str_datetime_start} and {str_datetime_end}")
+        logger.error(f"{e}")
+        exit(1)
+
     if len(items) == 0:
         if debug == True:
             logger.debug(f'No items found between {str_datetime_start} and {str_datetime_end}')

@@ -2,7 +2,10 @@
 
 '''
 
+> https://explorer.maap.eo.esa.int/
+
 '''
+
 import os
 import json
 from pystac_client import Client
@@ -47,8 +50,14 @@ def query_product(id: str, version: bool, silent: bool, debug: bool):
         ids     = [id]
     )
 
-    items = list(results.items())
-    
+    items = []
+    try:
+        items = list(results.items())
+    except Exception as e:
+        logger.error(f"Error when querying {id}")
+        logger.error(f"{e}")
+        exit(1)
+
     if len(items) == 0:
         if debug == True:
             logger.debug(f'No items found between with id {id}')
