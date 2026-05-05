@@ -21,6 +21,12 @@ logger = logger.patch(lambda record: record.update(name=record["file"].name))
 
 from importlib.metadata import version as package_version
 
+# 
+# (20/60)/24
+# .01388888888888888888
+#  20 minutes
+REPEAT_CYCLE_DAYS_PLUS_MARGINS = 21.01389
+
 # ===========================================================================================================================================================================
 # patching configuration according to the redmine issues:
 # 
@@ -45,7 +51,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-04-24T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -54,7 +60,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-04-25T18:12:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -63,7 +69,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-05T02:49:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -72,7 +78,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-06T18:16:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -81,7 +87,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-09-15T02:54:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -90,7 +96,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-09-16T18:21:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -99,7 +105,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-11-26T02:58:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -108,7 +114,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-11-27T18:26:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -128,7 +134,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-02-12T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -137,7 +143,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-04-24T04:33:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -146,7 +152,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-04-25T13:06:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -155,7 +161,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-05T04:38:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -164,7 +170,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-06T13:11:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -173,7 +179,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-09-15T04:43:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -182,7 +188,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-09-16T13:15:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -191,7 +197,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-11-26T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -212,7 +218,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-03-04T02:40:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -221,7 +227,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-05-15T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -230,7 +236,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-26T02:49:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
     
@@ -239,7 +245,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-27T18:16:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -248,7 +254,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-06T02:54:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -257,7 +263,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-07T18:21:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -266,7 +272,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-12-18T18:26:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -275,7 +281,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2027-02-28T18:30:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -296,7 +302,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-03-05T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -305,7 +311,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-05-16T13:07:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -314,7 +320,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-26T04:38:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -323,7 +329,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-07-27T13:11:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -332,7 +338,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-06T04:43:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -341,7 +347,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-12-17T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -350,7 +356,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2027-01-01T04:47:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     #logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -369,7 +375,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-03-25T02:40:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
     
@@ -378,7 +384,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-06-05T02:45:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -387,7 +393,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-08-16T02:50:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -396,7 +402,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 17
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-27T02:54:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -405,7 +411,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-28T18:21:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -414,7 +420,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'KSE_____'
     patching_element['relative_orbit']  = 41
     patching_element['date_start']      = datetime.strptime('UTC=2027-01-08T18:26:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -432,7 +438,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-03-26T13:02:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -441,7 +447,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 38
     patching_element['date_start']      = datetime.strptime('UTC=2026-06-06T13:07:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -450,7 +456,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-08-16T04:38:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -459,7 +465,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2026-10-27T04:43:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
@@ -468,7 +474,7 @@ def _init_patching_dates():
     patching_element['station_id']      = 'IVK_____'
     patching_element['relative_orbit']  = 18
     patching_element['date_start']      = datetime.strptime('UTC=2027-01-07T04:48:00+0000', 'UTC=%Y-%m-%dT%H:%M:%S%z')
-    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = 21)
+    patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
 
