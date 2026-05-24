@@ -70,15 +70,26 @@ def convert_time_to_relative_orbit(time: str, version: bool, silent: bool, debug
     if debug == True:
         logger.debug(cmd)
 
-    output  = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    try:
+        output  = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Failed {cmd}')
+        logger.error(f'{e}')
+        exit(99)
+
     mjd2000 = output.strip()
 
-    cmd = f'eocfi_time_orbit -f {mpl_orbsct} -i {mjd2000} -S'
-
+    cmd = f'eocfi_time_orbit -f {mpl_orbsct} -i MJD2000={mjd2000} -S'
     if debug == True:
         logger.debug(cmd)
 
-    output      = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    try:
+        output      = subprocess.check_output(cmd, shell = True).decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        logger.error(f'Failed {cmd}')
+        logger.error(f'{e}')
+        exit(99)
+
     abs_orbit   = json.loads( output )['orbit']['abs_orbit']
 
     cmd = f'eocfi_orbit -o {mpl_orbsct} -a {abs_orbit} -S'
