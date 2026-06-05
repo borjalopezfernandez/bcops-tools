@@ -3,6 +3,8 @@
 import os
 import shutil
 import pathlib
+import importlib
+import traceback
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -14,7 +16,18 @@ except Exception as e:
     print('https://eop-cfi.esa.int/index.php/mission-cfi-software/eocfi-software')
     exit(1)
 
+from eocfi.constants import XL_ASCII_CCSDSA_COMPACT
+from eocfi.constants import XL_PROC
+from eocfi.constants import XL_TIME_UTC
+
 from eocfi.api_xd import xd_read_fhr
+from eocfi.api_xl import xl_time_ref_init_file
+from eocfi.api_xl import xl_time_ascii_to_processing
+from eocfi.api_xo import xo_orbit_init_file
+from eocfi.api_xo import xo_time_to_orbit
+from eocfi.api_xo import xo_orbit_rel_from_abs
+from eocfi.api_xo import xo_orbit_close
+from eocfi.api_xo import xo_verbose
 
 from loguru import logger
 logger = logger.patch(lambda record: record.update(name=record["file"].name))
@@ -477,8 +490,106 @@ def _init_patching_dates():
     patching_element['date_end']        = patching_element['date_start'] + timedelta(days = REPEAT_CYCLE_DAYS_PLUS_MARGINS)
     # logger.info(f'Patching config: {patching_element['date_start']} to {patching_element['date_end']} station {patching_element["station_id"]} and relative orbit {patching_element["relative_orbit"]}')
     list_patching_dates.append(patching_element)
-
     return list_patching_dates
+
+
+# ===========================================================================================================================================================================
+# initialise the EOCFI:
+# 
+def _init_eocfi(debug: bool = False):
+    dist                = importlib.metadata.distribution('eocfi')
+    root_dist_info      = dist._path
+    dist_info_dir       = pathlib.Path(dist._path).parent
+    package_root_dir    = f'{dist_info_dir}/bcops'
+
+    file_orbsct       = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
+    
+    if debug == True:
+        logger.info(f'xl_time_ref_init_file {file_orbsct}')
+    try:
+        xl_time_ref_init_file(file_orbsct, debug)
+    except Exception as error:
+        logger.error(f"Failed to init the time reference xl_time_ref_init_file with file {file_orbsct}")
+        logger.error(error)
+        exit(99)
+
+    if debug == True:
+        logger.info(f'xo_verbose')
+        xo_verbose(debug)
+
+    if debug == True:
+        logger.info(f'xo_orbit_init_file {file_orbsct}')
+    try:
+        xo_orbit_init_file(file_orbsct, debug)
+    except Exception as error:
+        logger.error(f"Failed to init the orbit reference xo_orbit_init_file with file {file_orbsct}")
+        logger.error(error)
+        if debug == True:
+            print(traceback.format_exc())
+        exit(99)
+    return
+
+
+# =================================================================================================
+# get the absolute orbits to be patched in the configured time windows:
+def _get_eocfi_mjd2000_from_datetime(datetime_input: datetime, debug: bool = False):
+    ascii_id_in         = XL_ASCII_CCSDSA_COMPACT
+    time_ref_in         = XL_TIME_UTC
+    ascii_in            = datetime_input.strftime('%Y%m%dT%H%M%S')
+    proc_id_out         = XL_PROC
+    time_ref_out        = XL_TIME_UTC
+    mjd2000             = xl_time_ascii_to_processing(
+                                    ascii_id_in,
+                                    time_ref_in,
+                                    ascii_in,
+                                    proc_id_out,
+                                    time_ref_out,
+                                    debug)
+    return mjd2000
+
+
+# =================================================================================================
+# get the absolute orbits to be patched in the configured time windows:
+def _get_eocfi_orbit_from_mjd2000(mjd2000_time: float, debug: bool = False):
+    time_ref    = XL_TIME_UTC
+    abs_orbit   = xo_time_to_orbit(time_ref, mjd2000_time, debug)
+    return abs_orbit
+
+
+# =================================================================================================
+# get the absolute orbits to be patched in the configured time windows:
+# 
+def _get_patching_abs_orbit(list_patching_dates: list, debug: bool = False):
+    list_patching_abs_orbits   = []
+    list_patching_dates_sorted = sorted(list_patching_dates, key=lambda x: x['date_start'])
+    for patching_period in list_patching_dates_sorted:
+        if debug == True:
+            logger.info(f'Patching config: {patching_period['swath']} {patching_period['date_start']} to {patching_period['date_end']} station {patching_period['station_id']} and relative orbit {patching_period['relative_orbit']}')
+        current = patching_period['date_start']
+        end     = patching_period['date_end']
+
+        while current <= end:
+            mjd2000_start   = _get_eocfi_mjd2000_from_datetime(current, debug)          
+            orbit           = _get_eocfi_orbit_from_mjd2000(mjd2000_start, debug)
+            abs_orbit       = orbit['abs_orbit']
+            rel_orbit       = xo_orbit_rel_from_abs(abs_orbit, debug)['rel_orbit']
+            
+            if rel_orbit == patching_period['relative_orbit']:
+                if debug == True:
+                    logger.info(f'{current.strftime('%Y-%m-%dT%H:%M:%S')} - abs_orbit: {abs_orbit} rel_orbit: {rel_orbit} for {patching_period['station_id']} {patching_period['swath']}')
+                patching_abs_orbit              = patching_period.copy()
+                patching_abs_orbit['abs_orbit'] = abs_orbit
+                patching_abs_orbit['date']      = current
+                list_patching_abs_orbits.append(patching_abs_orbit)
+            
+            '''
+            logger.debug(mjd2000_start)
+            logger.debug(f"abs_orbit: {abs_orbit} rel_orbit: {rel_orbit}")
+            '''
+            current += timedelta(minutes = 95)        
+
+    return sorted(list_patching_abs_orbits, key=lambda x: x['abs_orbit'])
+
 
 import click
 CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
@@ -508,6 +619,12 @@ def patch_ppf_idle_frames(file: str, config: bool, version: bool, silent: bool, 
     if config == True:
         for patching_date in list_patching_dates:
             logger.info(f'Patching config: {patching_date['swath']} {patching_date['date_start']} to {patching_date['date_end']} station {patching_date['station_id']} and relative orbit {patching_date['relative_orbit']}')
+        logger.debug('---------------------------------------------------------------------------')
+        _init_eocfi(debug)
+        list_patching_abs_orbit = _get_patching_abs_orbit(list_patching_dates)
+        logger.info(f'List of patching abs_orbits: {len(list_patching_abs_orbit)}')
+        for patching_abs_orbit in list_patching_abs_orbit:
+            logger.info(f'{patching_abs_orbit['date'].strftime('%Y%m%d %H:%M')}  abs_orbit: {patching_abs_orbit['abs_orbit']} station {patching_abs_orbit["station_id"]} / relative orbit {patching_abs_orbit["relative_orbit"]} / {patching_abs_orbit['swath']}')
         exit(0)
 
     if pathlib.Path(f'/data/mpf/BMPF/data/outgoing/MPL_PPF___/{file}').exists() == False:
@@ -560,8 +677,6 @@ def patch_ppf_idle_frames(file: str, config: bool, version: bool, silent: bool, 
     exit(0)
 
 # ===========================================================================================================================================================================
-
-
 
 def version():
     return package_version('bcops')

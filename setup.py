@@ -8,7 +8,7 @@ setup(
     license_files           =   ['LICENSE'],
     python_requires         =   '>=3.11',       # only applies to sdist
     name                    =   'bcops',
-    version                 =   '0.0.27',
+    version                 =   '0.0.28',
     description             =   'BCOPS tools',
     package_dir             =   {'bcops': 'src/bcops'},
     package_data            =   {'bcops': ['data/*']},
