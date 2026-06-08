@@ -498,3 +498,45 @@ def test_l1b_S3_DGM__0S(print_separator):
     exit = os.system(cmd)
     assert(exit == 0)
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_FP_FD__L2A(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type FP_FD__L2A  --type FP_FD__L2A --start 2026-04-26T20:48:54Z --end 2026-04-26T20:49:58Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_FP_GN__L2A(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type FP_GN__L2A  --type FP_GN__L2A --start 2026-04-26T20:48:54Z --end 2026-04-26T20:49:58Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_FP_FH__L2A(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type FP_FH__L2A  --type FP_FH__L2A --start 2026-04-26T20:48:54Z --end 2026-04-26T20:49:58Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")

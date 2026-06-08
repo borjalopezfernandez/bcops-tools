@@ -26,11 +26,12 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1a
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1b
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1c
+> https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel2a
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAux
 > https://catalog.maap.eo.esa.int/catalogue/collections/BiomassAuxRest
 '''
 
-# BIO_COLLECTIONS     = ['BiomassLevel0IOC', 'BiomassLevel1aIOC', 'BiomassLevel1bIOC', 'BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b', 'BiomassLevel1c', 'BiomassAux', 'BiomassAuxRest']
+# BIO_COLLECTIONS     = ['BiomassLevel0IOC', 'BiomassLevel1aIOC', 'BiomassLevel1bIOC', 'BiomassLevel0', 'BiomassLevel1a', 'BiomassLevel1b', 'BiomassLevel1c', 'BiomassLevel2a', 'BiomassAux', 'BiomassAuxRest']
 BIO_COLLECTIONS     = ['BiomassLevel0IOC']
 list_item_id        = []
 list_datatake_id    = []
@@ -59,6 +60,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     > BiomassLevel1a
     > BiomassLevel1b
     > BiomassLevel1c
+    > BiomassLevel2a
     > BiomassAux
     > BiomassAuxRest
 
@@ -195,6 +197,15 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
 
     if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel1c']
+
+    if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
+
+    if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
+
+    if type == 'FP_FH__L2A' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
 
     if type[-7:] == '_ERP_RD':
         bio_collections = ['BiomassAuxRestIOC', 'BiomassAuxRest']
