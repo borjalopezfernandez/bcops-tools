@@ -684,6 +684,20 @@ def test_TOM_GC1_MC1_S1_STA__1S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
+def test_TOM_GC1_MC1_S2_SCS__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S2_SCS__1S --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 def test_TOM_GC1_MC1_S2_STA__1S(print_separator):
     """
     GIVEN test_conversion
@@ -740,20 +754,6 @@ def test_TOM_GC1_MC1_S2_RAW__0S(print_separator):
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
 
 
-def test_TOM_GC1_MC1_S2_SCS__1S(print_separator):
-    """
-    GIVEN test_conversion
-    WHEN 
-    THEN
-    """
-    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
-    cmd             = f'bcops_maap_query_datatake --type S2_SCS__1S --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -D'
-    logger.info(cmd)
-    exit = os.system(cmd)
-    assert(exit == 0)
-    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
-
-
 def test_TOM_GC1_MC1_S2_DGM__1S(print_separator):
     """
     GIVEN test_conversion
@@ -794,6 +794,106 @@ def test_TOM_GC1_MC1_S1_AUX_ERP_RD(print_separator):
     exit = os.system(cmd)
     assert(exit == 0)
     logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC2_S3_SCS__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S3_SCS__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -D -C > TOM_GC1_MC2_S3_SCS__1S.datatakes'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC2_S3_DGM__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S3_DGM__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -D -C > TOM_GC1_MC2_S3_DGM__1S.datatakes'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")    
+
+
+def test_TOM_GC1_MC3_S1_SCS__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_SCS__1S --start 2026-04-23T00:39:09Z --end 2026-05-14T00:39:22Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_S1_STA__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_STA__1S --start 2026-04-23T00:39:09Z --end 2026-05-14T00:39:22Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_S1_DGM__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S1_DGM__1S --start 2026-04-23T00:39:09Z --end 2026-05-14T00:39:22Z -D'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_S2_SCS__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S2_SCS__1S --start 2026-05-14T00:39:22Z --end 2026-06-04T00:39:36Z -D -C > TOM_GC1_MC3_S2_SCS__1S.datatakes'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
+def test_TOM_GC1_MC3_S2_DGM__1S(print_separator):
+    """
+    GIVEN test_conversion
+    WHEN 
+    THEN
+    """
+    logger.info(f"START : {sys._getframe().f_code.co_name} / {version('bcops')}")
+    cmd             = f'bcops_maap_query_datatake --type S2_DGM__1S --start 2026-05-14T00:39:22Z --end 2026-06-04T00:39:36Z -D -C > TOM_GC1_MC3_S2_DGM__1S.datatakes'
+    logger.info(cmd)
+    exit = os.system(cmd)
+    assert(exit == 0)
+    logger.info(f"END : {sys._getframe().f_code.co_name} / {version('bcops')}")
+
+
 
 
 def test_TOM_GC1_MC1_S2_AUX_TEC(print_separator):
