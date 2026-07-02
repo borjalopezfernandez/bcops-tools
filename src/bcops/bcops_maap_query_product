@@ -41,10 +41,19 @@ def query_product(id: str, version: bool, silent: bool, debug: bool):
         print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
         exit(0)
 
-    URL_LANDING_PAGE   = 'https://catalog.maap.eo.esa.int/catalogue/'
-    api                = Client.open(URL_LANDING_PAGE) 
+    URL_LANDING_PAGE    = 'https://catalog.maap.eo.esa.int/catalogue/'
+    api                 = None
+
+    try:
+        api = Client.open(URL_LANDING_PAGE)
+    except Exception as e:
+        logger.error(f"Error when connecting to {URL_LANDING_PAGE}")
+        logger.error(f"{e}")
+        exit(1)
+    
     if debug == True:
         logger.debug(f'querying products {id}')
+    
     results = api.search(
         method  = "GET",
         ids     = [id]

@@ -216,7 +216,13 @@ def query_biomass_products(datetime_start: datetime, datetime_end: datetime, typ
     if debug == True:
         logger.debug(f'Connecting to {URL_LANDING_PAGE}')
     
-    api  = Client.open(URL_LANDING_PAGE) 
+    api = None
+    try:
+        api  = Client.open(URL_LANDING_PAGE)
+    except Exception as e:
+        logger.error(f"Error when connecting to {URL_LANDING_PAGE}")
+        logger.error(f"{e}")
+        exit(1)
     
     if debug == True:
         logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products in collections {bio_collections}')
