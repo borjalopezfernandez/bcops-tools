@@ -1,0 +1,192 @@
+#!/usr/bin/env python
+
+'''
+
+> https://explorer.maap.eo.esa.int/
+
+'''
+
+import os
+import time
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = False, help = 'Query MAAP catalogue for products corresponding to a specific major cycle ID.')
+@click.option('--mc', '-i',                                              help = 'major cycle id / e.g. 47919223')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+
+def query_major_cycle(mc: str, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Query MAAP catalogue for products corresponding to a specific major cycle ID.
+
+    \b
+
+    """    
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        exit(0)
+
+    if debug == True:
+        logger.debug(f'querying products with major-cycle-id {mc}')
+    
+    '''
+    
+    # TOM_GC1_MC2_S1_datatakes
+    cmd             = f'bcops_maap_query_datatake --type S1_RAW__0S --start 2026-02-10T00:34:29Z --end 2026-03-03T00:34:43Z -C > TOM_GC1_MC2_S1_RAW__0S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S1_SCS__1S --start 2026-02-10T00:34:29Z --end 2026-03-03T00:34:43Z -C > TOM_GC1_MC2_S1_SCS__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+        
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S1_DGM__1S --start 2026-02-10T00:34:29Z --end 2026-03-03T00:34:43Z -C > TOM_GC1_MC2_S1_DGM__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+    
+    cmd             = f'bcops_maap_query_datatake --type S1_STA__1S --start 2026-02-10T00:34:29Z --end 2026-03-03T00:34:43Z -C > TOM_GC1_MC2_S1_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    time.sleep(601)
+
+    # TOM_GC1_MC2_S2_datatakes
+    cmd             = f'bcops_maap_query_datatake --type S2_RAW__0S --start 2026-03-03T00:34:43Z --end 2026-03-24T00:34:57Z -C > TOM_GC1_MC2_S2_RAW__0S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S2_SCS__1S --start 2026-03-03T00:34:43Z --end 2026-03-24T00:34:57Z -C > TOM_GC1_MC2_S2_SCS__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S2_DGM__1S --start 2026-03-03T00:34:43Z --end 2026-03-24T00:34:57Z -C > TOM_GC1_MC2_S2_DGM__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S2_STA__1S --start 2026-03-03T00:34:43Z --end 2026-03-24T00:34:57Z -C > TOM_GC1_MC2_S2_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    time.sleep(601)
+
+    # TOM_GC1_MC2_S3_datatakes
+    cmd             = f'bcops_maap_query_datatake --type S3_RAW__0S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -C > TOM_GC1_MC2_S3_RAW__0S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S3_SCS__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -C > TOM_GC1_MC2_S3_SCS__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S3_DGM__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -C > TOM_GC1_MC2_S3_DGM__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+    time.sleep(301)
+
+    cmd             = f'bcops_maap_query_datatake --type S3_STA__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -C > TOM_GC1_MC2_S3_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    
+    '''    
+
+
+
+    cmd             = f'bcops_maap_query_datatake --type S1_STA__1S --start 2026-02-10T00:34:29Z --end 2026-03-03T00:34:43Z -C > TOM_GC1_MC2_S1_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    time.sleep(601)
+
+
+    cmd             = f'bcops_maap_query_datatake --type S2_STA__1S --start 2026-03-03T00:34:43Z --end 2026-03-24T00:34:57Z -C > TOM_GC1_MC2_S2_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+    time.sleep(601)
+
+
+    cmd             = f'bcops_maap_query_datatake --type S3_STA__1S --start 2026-03-24T00:34:57Z --end 2026-04-14T00:35:10Z -C > TOM_GC1_MC2_S3_STA__1S.datatakes'
+    logger.info(cmd)
+    exit_code = os.system(cmd)
+    if exit_code != 0:
+        logger.error(f"Error occurred while executing command: {cmd}")
+        exit(1)
+
+
+
+
+
+
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    query_major_cycle()
+
+
+exit(0)

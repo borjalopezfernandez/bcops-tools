@@ -88,7 +88,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     str_datetime_end    = end
     date_format         = '%Y-%m-%dT%H:%M:%S%z'
     # time_delta          = timedelta(hours = 1)
-    time_delta          = timedelta(hours = 2)
+    time_delta          = timedelta(hours = 4)
 
     if type in ['AUX_TEC___', 'AUX_ATT___', 'AUX_ORB___', 'MPL_ORBPRE']:
         time_delta = timedelta(days = 1)
