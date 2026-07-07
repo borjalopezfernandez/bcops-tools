@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+
+from multiprocessing.util import debug
+from multiprocessing.util import debug
+import os
+import sys
+import importlib
+import pathlib
+import traceback
+
+from datetime import datetime
+
+try:
+    import eocfi
+except Exception as e:
+    print(f'Error importing eocfi: {e}')
+    print(f'Please install eocfi:') 
+    print('https://eop-cfi.esa.int/index.php/mission-cfi-software/eocfi-software')
+    exit(1)
+
+from eocfi.constants import XL_ASCII_CCSDSA
+from eocfi.constants import XL_PROC
+from eocfi.constants import XL_TIME_UTC
+
+from eocfi.api    import version as eocfi_version
+from eocfi.api_xo import xo_check_library_version
+from eocfi.api_xl import xl_time_ref_init_file
+from eocfi.api_xl import xl_time_processing_to_ascii
+from eocfi.api_xo import xo_orbit_init_file
+from eocfi.api_xo import xo_orbit_get_val_time
+from eocfi.api_xo import xo_orbit_to_time
+from eocfi.api_xo import xo_time_to_orbit
+from eocfi.api_xo import xo_orbit_close
+from eocfi.api_xo import xo_verbose
+
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+from importlib.metadata import version as package_version
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--id', '-i',                                              help = 'datatake-id to decode (e.g. 46231616)')
+@click.option('--config', '-c',      is_flag = True, default = False,    help = 'It shows the configuration')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+
+def decode_datatake_id(id: str, config: bool, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Decode the Datatake-Id according to ESA-EOPG-EOEP-TN-41
+
+    It reports the Datatake-Id sensing start time in UTC
+    \b
+
+    """
+
+    if version == True:
+        print(f"{os.path.basename(__file__)} - {package_version('bcops')}")
+        print(f'eocfi - {eocfi_version()}')
+        xo_check_library_version()
+        exit(0)
+
+    dist                = importlib.metadata.distribution('eocfi')
+    root_dist_info      = dist._path
+    dist_info_dir       = pathlib.Path(dist._path).parent
+    package_root_dir    = f'{dist_info_dir}/bcops'
+
+    file_orbsct         = f'{dist_info_dir}/bcops/data/BIO_COPS_MPL_ORBSCT'
+    file_orbref         = f'{dist_info_dir}/bcops/data/BIO_OPER_MPL_ORBREF_20251121T000000_20270409T000000_0009.EOF'
+
+    if config == True:
+        print(file_orbref)
+        print(file_orbsct)
+        exit(0)
+
+    if id == None:
+        logger.error(f'Please provide a datatake-id to decode')
+        exit(99)
+
+    # The datatake is encoded into 32 bits as follows:
+    # 0-18: absolute orbit number (19 bits)
+    # Extracting the first (most significant) 19 bits of a 32-bit value is equivalent to right-shifting the number by 32 - 19 = 13 bits.
+    # echo $((48038273 >> 13))
+    # 19-32: ANX_Time in seconds (13 bits)
+    # Extracting the last (least significant) 13 bits is a masking operation: value & (2^13 - 1)
+    # 0x1FFF = 8191 = 2^13 - 1
+
+    datatake_id = int(id)
+    abs_orbit   = datatake_id >> 13
+    anx_time    = datatake_id & 0x1FFF
+
+    if debug == True:
+        logger.info(f'{datatake_id} - abs_orbit: {abs_orbit} - anx_time: {anx_time} seconds')
+
+    ascii_id_out        = XL_ASCII_CCSDSA
+    time_ref_in         = XL_TIME_UTC
+    proc_id_in          = XL_PROC
+    time_ref_out        = XL_TIME_UTC
+
+    if debug == True:
+        logger.info(f'xl_time_ref_init_file {file_orbref}')
+    try:
+        xl_time_ref_init_file(file_orbref, debug)
+    except Exception as error:
+        logger.error(f"Failed to init the time reference xl_time_ref_init_file with file {file_orbref}")
+        logger.error(error)
+        exit(99)
+
+    if debug == True:
+        logger.info(f'xo_verbose')
+        xo_verbose(debug)
+
+    if debug == True:
+        logger.info(f'xo_orbit_init_file {file_orbref}')
+    try:
+        xo_orbit_init_file(file_orbref, debug)
+    except Exception as error:
+        logger.error(f"Failed to init the orbit reference xo_orbit_init_file with file {file_orbref}")
+        logger.error(error)
+        if debug == True:
+            print(traceback.format_exc())
+        exit(99)
+    
+    xo_validity_time = xo_orbit_get_val_time(debug)
+    
+    if debug == True:
+        logger.info(xo_validity_time)
+
+    xo_validity_time_start  = float(xo_validity_time['start'])
+    xo_validity_time_end    = float(xo_validity_time['stop'])
+
+    if debug == True:
+        logger.info(f'xo_time_to_orbit {str(xo_validity_time_start)}')
+    
+    orbit_coverage_start    = xo_time_to_orbit(time_ref_in, xo_validity_time_start, debug)
+    abs_orbit_start         = orbit_coverage_start['abs_orbit']
+
+    if debug == True:
+        logger.info(f'xo_time_to_orbit {str(xo_validity_time_end)}')
+    
+    orbit_coverage_end      = xo_time_to_orbit(time_ref_in, xo_validity_time_end, debug)
+    abs_orbit_end           = orbit_coverage_end['abs_orbit']
+
+    if abs_orbit < abs_orbit_start or abs_orbit > abs_orbit_end:
+        logger.error(f'Datatake-id {datatake_id} - abs_orbit {abs_orbit} is out of the orbit range: {abs_orbit_start} - {abs_orbit_end}')
+        exit(99)
+    
+    mjd2000             = xo_orbit_to_time(XL_TIME_UTC, abs_orbit, anx_time, 0, debug)
+
+    ascii_time_utc      = xl_time_processing_to_ascii(proc_id_in,
+                                    time_ref_in,
+                                    mjd2000,
+                                    ascii_id_out,
+                                    time_ref_out,
+                                    debug)
+
+    if debug == True:    
+        logger.info(f'xo_orbit_to_time orbit {abs_orbit} - anx_time: {anx_time} seconds - MJD2000: {mjd2000} - {ascii_time_utc}')
+
+    print(ascii_time_utc)
+
+    xo_orbit_close(debug)
+
+    
+def version():
+    return package_version('bcops')
+
+if __name__ == '__main__':
+    decode_datatake_id()
+
+
+exit(0)
