@@ -2,7 +2,7 @@
 
 import os
 
-from datetime import datetime, UTC
+from datetime import datetime, timedelta, UTC
 import pytz
 
 from loguru import logger
@@ -15,7 +15,7 @@ CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" :
 
 @click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
 @click.option('--Now', '-N',         is_flag = True, default = False,  help = 'Generate compact creation date for current datetime')
-@click.option('--input', '-i',       is_flag = False,default = None,   help = 'Generate compact creation date for current datetime')
+@click.option('--input', '-i',       is_flag = False,default = None,   help = 'Decode compact creation date')
 @click.option('--version', '-v',     is_flag = True, default = False,  help = 'It shows the version')
 @click.option('--Debug', '-D',       is_flag = True, default = False,  help = 'Debug flag for verbose messages')
 
@@ -49,6 +49,18 @@ def manage_product_compact_creation_date(now: bool, input: str, version: bool, d
             total_seconds   =   total_seconds // 36
         base36_str      =   base36_str.rjust(6, '0')
         print(f"Compact Creation Date (Now) : {base36_str}")
+
+    if input is not None:
+        try:
+            base36_str      =   input.upper()
+            total_seconds   =   int(base36_str, 36)
+            tz              =   pytz.timezone('UTC')
+            epoch           =   datetime(2000, 1, 1, 0, 0, 0, tzinfo = tz)
+            creation_dt     =   epoch + timedelta(seconds=total_seconds)
+            print(f"{creation_dt.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        except Exception as e:
+            logger.error(f"Error decoding compact creation date: {e}")
+            exit(1)
     
 # ===========================================================================================================================================================================
 

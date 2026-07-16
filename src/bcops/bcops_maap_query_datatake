@@ -52,7 +52,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
 
     """
     \b
-    Query MAAP catalogue for data-take information within some time interval and product type within the following collections:
+    Query MAAP catalogue for BIOMASS products data-take information within some time interval and product type within the following collections:
     > BiomassLevel0IOC
     > BiomassLevel1aIOC
     > BiomassLevel1bIOC

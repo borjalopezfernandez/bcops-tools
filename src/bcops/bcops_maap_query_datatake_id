@@ -30,7 +30,7 @@ def query_datatake_id(id: str, version: bool, silent: bool, debug: bool):
 
     """
     \b
-    Query MAAP catalogue for products corresponding to a specific datatake ID.
+    Query MAAP catalogue for BIOMASS products corresponding to a specific datatake ID.
 
     \b
 
