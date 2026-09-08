@@ -1,0 +1,198 @@
+#!/usr/bin/env python
+
+from pystac_client import Client
+from datetime import datetime, timezone
+import pytz
+import csv as csv_file
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--start', '-s',                                           help = 'start datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-22T00:00:00Z')
+@click.option('--end', '-e',                                             help = 'end datetime in format YYYY-MM-DDThh:mm:ssZ / 2025-10-23T00:00:00Z')
+@click.option('--type', '-t',                                            help = 'API productType filter S1_RAW__0S | S2_RAW__0S | S3_RAW__0S', default = 'S2_RAW__0S')
+@click.option('--baseline', '-b',                                        help = 'API product version attribute matching the baseline (e.g. 02)')
+@click.option('--CSV', '-C',         is_flag = True, default = False,    help = 'Output results to CSV file')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Query MAAP catalogue for BIOMASS products data-take information within some time interval and product type within the following collections:
+    > BiomassLevel0IOC
+    > BiomassLevel1aIOC
+    > BiomassLevel1bIOC
+    > BiomassLevel0
+    > BiomassLevel1a
+    > BiomassLevel1b
+    > BiomassLevel1c
+    > BiomassLevel2a
+    > BiomassAux
+    > BiomassAuxRest
+
+    CSV file naming convention is:
+        bcops_maap_query_datatake_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
+
+    CSV file format is:
+        datatake_id, product_type, product_id, sensing_start, sensing_end
+
+    Auxiliary products are datatake-less and no grouping is performed.
+    \b
+
+    """
+
+    URL_LANDING_PAGE =  'https://catalog.maap.eo.esa.int/catalogue/'
+    api = Client.open(URL_LANDING_PAGE) 
+
+    str_datetime_start  = '2026-02-10T00:34:29Z'
+    str_datetime_end    = '2026-03-03T00:34:43Z'
+    date_format         = '%Y-%m-%dT%H:%M:%SZ'
+
+    datetime_start     = None
+    datetime_end       = None
+        
+    try:
+        datetime_start      = datetime.strptime(str_datetime_start, date_format).replace(tzinfo=timezone.utc)
+        datetime_end        = datetime.strptime(str_datetime_end, date_format).replace(tzinfo=timezone.utc)
+    except Exception as e:
+        print(f'Error parsing input datetimes: {e}')
+        exit(1)   
+
+    datetime_tom_phase  = datetime(2025, 11, 21, 0, 29, 45, tzinfo = pytz.utc)
+    bio_collections     = None
+
+    if type[-7:] == 'RAW__0S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel0IOC', 'BiomassLevel0']
+
+    if type[-7:] == 'RAW__0S' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel0IOC']
+
+    if type[-7:] == 'RAW__0S' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel0']
+
+    if type[-7:] == 'SCS__1S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1aIOC', 'BiomassLevel1a']
+
+    if type[-7:] == 'SCS__1S' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1aIOC']
+
+    if type[-7:] == 'SCS__1S' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel1a']
+
+    if type[-7:] == 'DGM__1S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1bIOC', 'BiomassLevel1b']
+
+    if type[-7:] == 'DGM__1S' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1bIOC']
+
+    if type[-7:] == 'DGM__1S' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel1b']
+
+    if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1cIOC', 'BiomassLevel1c']
+
+    if type[-7:] == 'STA__1S' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel1cIOC']
+
+    if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel1c']
+
+    if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
+
+    if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
+
+    if type == 'FP_FH__L2A' and datetime_end < datetime_tom_phase:
+        bio_collections = ['BiomassLevel2a']
+
+    if type[-7:] == '_ERP_RD':
+        bio_collections = ['BiomassAuxRestIOC', 'BiomassAuxRest']
+
+    if type[-7:] == '_TEC___':
+        bio_collections = ['BiomassAuxRestIOC', 'BiomassAuxRest']
+
+    if bio_collections is None:
+        logger.error(f"Error: product type {type} is not supported")
+        exit(1)
+    
+    datetime_now        = datetime.now(pytz.utc)
+    filename            = f'bcops_maap_query_datatake_{type}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
+
+    api = None
+    try:
+        api  = Client.open(URL_LANDING_PAGE)
+    except Exception as e:
+        logger.error(f"Error when connecting to {URL_LANDING_PAGE}")
+        logger.error(f"{e}")
+        exit(1)
+    
+    if debug == True:
+        logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products in collections {bio_collections}')
+
+    results = api.search(
+        method      =   'GET',
+        limit       =   500,
+        collections =   bio_collections,
+        filter      =   f"(productType='{type}')",
+        datetime    =   [f'{datetime_start.strftime("%Y-%m-%dT%H:%M:%SZ")}', f'{datetime_end.strftime("%Y-%m-%dT%H:%M:%SZ")}']
+    )
+
+    if not silent:
+        print(f"{results.matched()} items found")
+
+    records=[]
+    for i, it in enumerate(results.items(), 1):
+        if not silent:
+            print(f"\r{i}", end=' ', flush = True)
+        d = it.to_dict()
+
+        flat = {
+            "product_id": d.get("id"),
+            "platform": d['properties'].get("platform"),
+            "start_datetime": d['properties'].get("start_datetime"),
+            "end_datetime": d['properties'].get("end_datetime"),
+            "product_type": d['properties'].get("product:type"),
+            "global_coverage": d['properties'].get("eofeos:global_coverage_id"),
+            "major_cycle": d['properties'].get("eofeos:major_cycle_id"),
+            "phase": d['properties'].get("eofeos:mission_phase"),
+            "drift_flag": d['properties'].get("eofeos:orbit_drift_flag"),
+            "repeat_cycle": d['properties'].get("eofeos:repeat_cycle_id"),
+            "datatake_id": d['properties'].get("eopf:datatake_id"),
+        }
+        records.append(flat)
+
+    list_sorted         = sorted(records, key=lambda x: x['product_id'])
+
+    file_handler        = open(filename, mode = 'w', newline = '')  
+    csv_writer          = csv_file.writer(file_handler, delimiter = ',')
+    header              = ['datatake_id', 'product_type', 'product_id', 'sensing_start', 'sensing_end']
+    csv_writer.writerow(header)
+
+    prev_datatake = None
+
+    for i, item in enumerate(list_sorted, 1):
+        if item['datatake_id'] != prev_datatake:
+            prev_datatake = item['datatake_id']
+            print(f"{item['datatake_id']}")
+        row = [
+                item['datatake_id'],
+                item['product_type'],
+                item['product_id'],
+                item['start_datetime'],
+                item['end_datetime']
+            ]
+        csv_writer.writerow(row)
+
+
+if __name__ == '__main__':
+    query_datatakes()
+
+exit(0)
