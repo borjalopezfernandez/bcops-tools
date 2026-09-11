@@ -51,8 +51,8 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     URL_LANDING_PAGE =  'https://catalog.maap.eo.esa.int/catalogue/'
     api = Client.open(URL_LANDING_PAGE) 
 
-    str_datetime_start  = '2026-02-10T00:34:29Z'
-    str_datetime_end    = '2026-03-03T00:34:43Z'
+    str_datetime_start  = start
+    str_datetime_end    = end
     date_format         = '%Y-%m-%dT%H:%M:%SZ'
 
     datetime_start     = None
@@ -124,7 +124,11 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
         exit(1)
     
     datetime_now        = datetime.now(pytz.utc)
-    filename            = f'bcops_maap_query_datatake_{type}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
+    
+    if baseline == None:
+        filename            = f'bcops_maap_query_datatake_{type}_BXX_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
+    else:
+        filename            = f'bcops_maap_query_datatake_{type}_B{baseline}_{datetime_start.strftime("%Y%m%dT%H%M%S")}_{datetime_end.strftime("%Y%m%dT%H%M%S")}_C{datetime_now.strftime("%Y%m%dT%H%M%S")}.csv'
 
     api = None
     try:
@@ -135,39 +139,65 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
         exit(1)
     
     if debug == True:
-        logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products in collections {bio_collections}')
+        if baseline == None:
+            logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} all baseline products in collections {bio_collections}')
+        else:
+            logger.debug(f'{str_datetime_start} to {str_datetime_end} => querying {type} products in collections {bio_collections} with baseline {baseline}')
 
-    results = api.search(
-        method      =   'GET',
-        limit       =   500,
-        collections =   bio_collections,
-        filter      =   f"(productType='{type}')",
-        datetime    =   [f'{datetime_start.strftime("%Y-%m-%dT%H:%M:%SZ")}', f'{datetime_end.strftime("%Y-%m-%dT%H:%M:%SZ")}']
-    )
+
+    if baseline is not None:
+        if debug == True:
+            logger.debug(f"api.search GET limit = 500 ; collection = {bio_collections} ; filter = productType='{type}' and version='{baseline}' ; datetime = [{datetime_start}, {datetime_end}]")
+        results = api.search(
+            method      = 'GET',
+            limit       = 500,
+            collections = bio_collections,
+            filter      = f"productType='{type}' and version='{baseline}'",
+            datetime    = [datetime_start, datetime_end]
+        )
+    else:
+        if debug == True:
+            logger.debug(f"api.search GET limit = 500 ; collection = {bio_collections} ; filter = productType='{type}' ; datetime = [{datetime_start}, {datetime_end}]")
+        results = api.search(
+            method      =   'GET',
+            limit       =   500,
+            collections =   bio_collections,
+            filter      =   f"(productType='{type}')",
+            datetime    =   [f'{datetime_start.strftime("%Y-%m-%dT%H:%M:%SZ")}', f'{datetime_end.strftime("%Y-%m-%dT%H:%M:%SZ")}']
+        )
 
     if not silent:
         print(f"{results.matched()} items found")
 
-    records=[]
-    for i, it in enumerate(results.items(), 1):
-        if not silent:
-            print(f"\r{i}", end=' ', flush = True)
-        d = it.to_dict()
+    if debug == True:
+        logger.debug(f"{results.matched()} items found")
 
-        flat = {
-            "product_id": d.get("id"),
-            "platform": d['properties'].get("platform"),
-            "start_datetime": d['properties'].get("start_datetime"),
-            "end_datetime": d['properties'].get("end_datetime"),
-            "product_type": d['properties'].get("product:type"),
-            "global_coverage": d['properties'].get("eofeos:global_coverage_id"),
-            "major_cycle": d['properties'].get("eofeos:major_cycle_id"),
-            "phase": d['properties'].get("eofeos:mission_phase"),
-            "drift_flag": d['properties'].get("eofeos:orbit_drift_flag"),
-            "repeat_cycle": d['properties'].get("eofeos:repeat_cycle_id"),
-            "datatake_id": d['properties'].get("eopf:datatake_id"),
-        }
-        records.append(flat)
+    records=[]
+
+    try:
+        for i, it in enumerate(results.items(), 1):
+            if not silent:
+                print(f"\r{i}", end=' ', flush = True)
+            d = it.to_dict()
+
+            flat = {
+                'product_id'        : d.get("id"),
+                'platform'          : d['properties'].get("platform"),
+                'start_datetime'    : d['properties'].get("start_datetime"),
+                'end_datetime'      : d['properties'].get("end_datetime"),
+                'product_type'      : d['properties'].get("product:type"),
+                'global_coverage'   : d['properties'].get("eofeos:global_coverage_id"),
+                'major_cycle'       : d['properties'].get("eofeos:major_cycle_id"),
+                'phase'             : d['properties'].get("eofeos:mission_phase"),
+                'drift_flag'        : d['properties'].get("eofeos:orbit_drift_flag"),
+                'repeat_cycle'      : d['properties'].get("eofeos:repeat_cycle_id"),
+                'datatake_id'       : d['properties'].get("eopf:datatake_id"),
+            }
+            records.append(flat)
+    except Exception as e:
+        logger.error(f"Error querying maap")
+        logger.error(e)
+        exit(99)
 
     list_sorted         = sorted(records, key=lambda x: x['product_id'])
 
@@ -177,11 +207,10 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     csv_writer.writerow(header)
 
     prev_datatake = None
+    if not silent:
+        print()
 
     for i, item in enumerate(list_sorted, 1):
-        if item['datatake_id'] != prev_datatake:
-            prev_datatake = item['datatake_id']
-            print(f"{item['datatake_id']}")
         row = [
                 item['datatake_id'],
                 item['product_type'],
@@ -190,6 +219,9 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
                 item['end_datetime']
             ]
         csv_writer.writerow(row)
+        if item['datatake_id'] != prev_datatake:
+            prev_datatake = item['datatake_id']
+            print(f"{item['datatake_id']}")
 
 
 if __name__ == '__main__':
