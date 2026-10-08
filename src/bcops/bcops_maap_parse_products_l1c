@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+
+from pystac_client import Client
+from datetime import datetime, timezone
+from pathlib import Path
+from collections import defaultdict
+import sys
+import re
+import pytz
+import csv
+
+from loguru import logger
+logger = logger.patch(lambda record: record.update(name=record["file"].name))
+
+# Matches "_T002_F032_" style track/frame tokens anywhere in the product_id.
+TRACK_FRAME_RE = re.compile(r"_T(\d{3})_F(\d{3})_")
+
+
+def extract_track_frame(product_id: str):
+    '''Return (track, frame) as strings like '002', '032', or (None, None).'''
+    m = TRACK_FRAME_RE.search(product_id)
+    if not m:
+        return None, None
+    return m.group(1), m.group(2)
+
+
+def load_and_group(input_path: str):
+    groups      = defaultdict(list)
+    unmatched   = []
+
+    with open(input_path, newline='', encoding='utf-8') as f:
+        reader      = csv.DictReader(f)
+        fieldnames  = reader.fieldnames
+        if 'product_id' not in fieldnames:
+            sys.exit(f"Error: 'product_id' column not found. Columns present: {fieldnames}")
+
+        for row in reader:
+            track, frame = extract_track_frame(row['product_id'])
+            if track is None:
+                unmatched.append(row)
+                continue
+            row['track'] = track
+            row['frame'] = frame
+            groups[(track, frame)].append(row)
+
+    return groups, unmatched, fieldnames
+
+
+def print_summary(groups):
+    print(f"{'Track':<8}{'Frame':<8}{'Count':<8}Datatake IDs")
+    print("-" * 60)
+    for (track, frame) in sorted(groups.keys(), key=lambda tf: (tf[0], tf[1])):
+        rows = groups[(track, frame)]
+        datatakes = sorted({r['datatake_id'] for r in rows})
+        datatake_str = ", ".join(datatakes) if len(datatakes) <= 5 else f"{len(datatakes)} distinct datatakes"
+        print(f"T{track:<7}F{frame:<7}{len(rows):<8}{datatake_str}")
+
+    total_products = sum(len(rows) for rows in groups.values())
+    print("-" * 60)
+    print(f"Total groups: {len(groups)}  |  Total products grouped: {total_products}")
+
+
+def find_orphans(groups):
+    '''Return the list of rows whose (track, frame) group has exactly one member.'''
+    orphans = []
+    for rows in groups.values():
+        if len(rows) == 1:
+            orphans.append(rows[0])
+    return orphans
+
+
+def print_orphans(orphans):
+    print(f"\nOrphan products (no other product shares their track/frame): {len(orphans)}")
+    if not orphans:
+        return
+    print(f"{'Track':<8}{'Frame':<8}{'Datatake ID':<14}Product ID")
+    print("-" * 90)
+    for row in sorted(orphans, key=lambda r: (r["track"], r["frame"])):
+        print(f"T{row['track']:<7}F{row['frame']:<7}{row['datatake_id']:<14}{row['product_id']}")
+
+
+def write_enriched_csv(groups, unmatched, fieldnames, output_path):
+    out_fields = list(fieldnames) + ["track", "frame", "is_orphan"]
+
+    all_rows = []
+    for rows in groups.values():
+        is_orphan = len(rows) == 1
+        for row in rows:
+            row["is_orphan"] = "yes" if is_orphan else "no"
+            all_rows.append(row)
+
+    all_rows.sort(key=lambda r: (r["track"], r["frame"], r.get("sensing_start", "")))
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=out_fields)
+        writer.writeheader()
+        writer.writerows(all_rows)
+
+    if unmatched:
+        print(f"\nWarning: {len(unmatched)} row(s) had no recognizable track/frame "
+              f"pattern and were excluded from the output CSV.")
+
+
+def write_orphans_csv(orphans, fieldnames, output_path):
+    if not orphans:
+        return
+    out_fields = list(fieldnames) + ["track", "frame"]
+    orphans_sorted = sorted(orphans, key=lambda r: (r["track"], r["frame"]))
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=out_fields)
+        writer.writeheader()
+        for row in orphans_sorted:
+            writer.writerow({k: row[k] for k in out_fields})
+
+
+
+
+import click
+CONTEXT_SETTINGS = {"help_option_names": ['-h', '--help'], "max_content_width" : 220}
+
+@click.command(context_settings=CONTEXT_SETTINGS, no_args_is_help = True)
+@click.option('--input', '-i',                                           help = 'bcops_maap_query_datatake_Sx_STA__1S.csv')
+@click.option('--CSV', '-C',         is_flag = True, default = False,    help = 'Output results to CSV file')
+@click.option('--version', '-v',     is_flag = True, default = False,    help = 'It shows the version')
+@click.option('--Silent', '-S',      is_flag = True, default = False,    help = 'Avoid logging messages')
+@click.option('--Debug', '-D',       is_flag = True, default = False,    help = 'Debug flag for verbose messages')
+
+def parse_datatakes_l1c(input: str, csv: bool, version: bool, silent: bool, debug: bool):
+
+    """
+    \b
+    Query MAAP catalogue export for BIOMASS L1C products grouping them by Track number & Frame number:
+    Example of 7 RC below:
+    T_G01_M03_[C01,C02,C03,C04,C05,C06,C07]_T005_F012_02
+    
+    CSV file naming convention is:
+        bcops_maap_query_datatake_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
+
+    CSV file format is:
+        datatake_id, product_type, product_id, sensing_start, sensing_end
+
+    \b
+
+    """
+
+    input_path  = input
+    p           = Path(input_path)
+    output_path = str(p.with_name(p.stem + "_grouped.csv"))
+    
+    if debug == True:
+        logger.debug(f"DEBUG")
+
+    groups, unmatched, fieldnames = load_and_group(input_path)
+    print_summary(groups)
+
+    orphans = find_orphans(groups)
+    print_orphans(orphans)
+
+    write_enriched_csv(groups, unmatched, fieldnames, output_path)
+    print(f"\nEnriched, grouped CSV written to: {output_path}")
+
+    orphans_path = str(Path(output_path).with_name(Path(output_path).stem + "_orphans.csv"))
+    write_orphans_csv(orphans, fieldnames, orphans_path)
+    if orphans:
+        print(f"Orphan-only CSV written to: {orphans_path}")
+
+
+
+if __name__ == '__main__':
+    parse_datatakes_l1c()
+
+exit(0)

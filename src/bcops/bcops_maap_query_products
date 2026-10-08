@@ -104,13 +104,22 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel1c']
 
+    if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
+
     if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel2a']
+
+    if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
 
     if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel2a']
 
-    if type == 'FP_FH__L2A' and datetime_end < datetime_tom_phase:
+    if type == 'FP_FH__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+        bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
+    
+    if type == 'FP_FH__L2A' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel2a']
 
     if type[-7:] == '_ERP_RD':
@@ -166,16 +175,21 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
             datetime    =   [f'{datetime_start.strftime("%Y-%m-%dT%H:%M:%SZ")}', f'{datetime_end.strftime("%Y-%m-%dT%H:%M:%SZ")}']
         )
 
+    num_matched = results.matched()
+
     if not silent:
-        print(f"{results.matched()} items found")
+        print(f"{num_matched} items found")
 
     if debug == True:
-        logger.debug(f"{results.matched()} items found")
+        logger.debug(f"{num_matched} items found")
 
     records=[]
 
+    counter_items = 0
+
     try:
         for i, it in enumerate(results.items(), 1):
+            counter_items = i
             if not silent:
                 print(f"\r{i}", end=' ', flush = True)
             d = it.to_dict()
@@ -195,7 +209,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
             }
             records.append(flat)
     except Exception as e:
-        logger.error(f"Error querying maap")
+        logger.error(f"Error querying maap at item retrieval {counter_items}/{num_matched}")
         logger.error(e)
         exit(99)
 
