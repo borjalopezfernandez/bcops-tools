@@ -8,7 +8,7 @@ setup(
     license_files           =   ['LICENSE'],
     python_requires         =   '>=3.11',       # only applies to sdist
     name                    =   'bcops',
-    version                 =   '0.0.37',
+    version                 =   '0.0.40',
     description             =   'BCOPS tools',
     package_dir             =   {'bcops': 'src/bcops'},
     package_data            =   {'bcops': ['data/*']},
@@ -25,6 +25,7 @@ setup(
                                     'src/bcops/bcops_bmpf_kml_arrange',
                                     'src/bcops/bcops_eocfi_time_relative_orbit',
                                     'src/bcops/bcops_product_compact_creation_date',
+                                    'src/bcops/bcops_maap_parse_products_l1c',
                                     'src/bcops/bcops_maap_query_datatake',
                                     'src/bcops/bcops_maap_query_datatake_id',
                                     'src/bcops/bcops_maap_query_major_cycle',
