@@ -95,28 +95,32 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
     if type[-7:] == 'DGM__1S' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel1b']
 
-    if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+    if type[-7:] == 'STA__1S' and datetime_end < datetime_tom_phase:
         bio_collections = ['BiomassLevel1cIOC', 'BiomassLevel1c']
 
+    '''
+    
     if type[-7:] == 'STA__1S' and datetime_end < datetime_tom_phase:
         bio_collections = ['BiomassLevel1cIOC']
+    
+    '''
 
     if type[-7:] == 'STA__1S' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel1c']
 
-    if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+    if type == 'FP_GN__L2A' and datetime_end < datetime_tom_phase:
         bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
 
     if type == 'FP_GN__L2A' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel2a']
 
-    if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+    if type == 'FP_FD__L2A' and datetime_end < datetime_tom_phase:
         bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
 
     if type == 'FP_FD__L2A' and datetime_end >= datetime_tom_phase:
         bio_collections = ['BiomassLevel2a']
 
-    if type == 'FP_FH__L2A' and datetime_end >= datetime_tom_phase and datetime_start < datetime_tom_phase:
+    if type == 'FP_FH__L2A' and datetime_end < datetime_tom_phase:
         bio_collections = ['BiomassLevel2aIOC', 'BiomassLevel2a']
     
     if type == 'FP_FH__L2A' and datetime_end >= datetime_tom_phase:
@@ -129,7 +133,7 @@ def query_datatakes(start: str, end: str, type: str, baseline: str, csv: bool, v
         bio_collections = ['BiomassAuxRestIOC', 'BiomassAuxRest']
 
     if bio_collections is None:
-        logger.error(f"Error: product type {type} is not supported")
+        logger.error(f"Error: product type {type} is not supported in range {datetime_start} to {datetime_end} wrt TOM phase {datetime_tom_phase}")
         exit(1)
     
     datetime_now        = datetime.now(pytz.utc)
