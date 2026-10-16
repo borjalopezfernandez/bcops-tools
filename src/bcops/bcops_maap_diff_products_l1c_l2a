@@ -46,12 +46,15 @@ def load_and_group(input_path: str):
     return groups, unmatched, fieldnames
 
 
-def diff_groups(groups_l1C, groups_l2A):    
+def diff_groups(groups_l1C, groups_l2A, dt):    
     print("Products in L1C but not in L2A:")
     for (track, frame) in sorted((groups_l1C.keys() - groups_l2A.keys()), key=lambda tf: (tf[0], tf[1])):
         rows = groups_l1C[(track, frame)]
         datatakes = sorted({r['datatake_id'] for r in rows})
-        print(f"T{track}_F{frame} - {len(datatakes)} L1C DT: {datatakes}")
+        if dt == True:
+            print(f"T{track}_F{frame} - {len(datatakes)} L1C DT: {datatakes}")
+        else:
+            print(f"T{track}_F{frame}")
     return
 
 
@@ -139,15 +142,9 @@ def parse_products_l1c_l2a(input_l1c: str, input_l2a: str, csv: bool, version: b
 
     """
     \b
-    Query MAAP catalogue export for BIOMASS L1C products grouping them by Track number & Frame number:
-    Example of 7 RC below:
-    T_G01_M03_[C01,C02,C03,C04,C05,C06,C07]_T005_F012_02
-    
-    CSV file naming convention is:
-        bcops_maap_query_datatake_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
-
-    CSV file format is:
-        datatake_id, product_type, product_id, sensing_start, sensing_end
+    Diff MAAP catalogue export for BIOMASS L1C vs L2A products grouping them by Track number & Frame number
+        Example of 7 RC below:
+        T_G01_M03_[C01,C02,C03,C04,C05,C06,C07]_T005_F012_02
 
     \b
 

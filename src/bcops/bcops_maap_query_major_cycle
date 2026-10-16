@@ -61,15 +61,6 @@ def query_major_cycle(mc: str, version: bool, silent: bool, debug: bool):
 
 
 
-    
-    cmd             = f'bcops_maap_query_products --type S1_SCS__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 01 > IOC_COM1_S1_SCS__1S_B01.datatakes'
-    cmd             = f'bcops_maap_query_products --type S1_SCS__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 02 > IOC_COM1_S1_SCS__1S_B02.datatakes'
-    cmd             = f'bcops_maap_query_products --type S1_DGM__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 01 > IOC_COM1_S1_DGM__1S_B01.datatakes'
-    cmd             = f'bcops_maap_query_products --type S1_DGM__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 02 > IOC_COM1_S1_DGM__1S_B02.datatakes'
-    cmd             = f'bcops_maap_query_products --type S1_STA__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 01 > IOC_COM1_S1_STA__1S_B01.datatakes'
-    cmd             = f'bcops_maap_query_products --type S1_STA__1S --start 2025-06-05T20:51:57Z --end 2025-06-23T20:51:57Z -C -D -S -b 02 > IOC_COM1_S1_STA__1S_B02.datatakes'
-
-
      
 
     logger.info('------------------------------------------------------------')
@@ -172,6 +163,8 @@ def query_major_cycle(mc: str, version: bool, silent: bool, debug: bool):
     cmd             = f'bcops_maap_query_products --type S2_DGM__1S --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D -S -b 02 > TOM_GC1_MC1_S2_DGM__1S_B02.datatakes'
     cmd             = f'bcops_maap_query_products --type S2_STA__1S --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D -S -b 01 > TOM_GC1_MC1_S2_STA__1S_B01.datatakes'
     cmd             = f'bcops_maap_query_products --type S2_STA__1S --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D -S -b 02 > TOM_GC1_MC1_S2_STA__1S_B02.datatakes'
+    cmd             = f'bcops_maap_query_products --type FP_FH__L2A --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D -S -b 02'
+    cmd             = f'bcops_maap_query_products --type FP_GN__L2A --start 2025-12-12T00:29:58Z --end 2026-01-02T00:30:12Z -C -D -S -b 02'
 
     
     
@@ -526,14 +519,20 @@ def query_major_cycle(mc: str, version: bool, silent: bool, debug: bool):
     cmd = f'bcops_maap_query_products --type S1_SCS__1S --start 2026-09-14T00:48:27Z --end 2026-10-05T00:53:06Z -C -D -S -b 02 > TOM_GC1_MC5_S1_SCS__1S_B02.datatakes'
     cmd = f'bcops_maap_query_products --type S1_DGM__1S --start 2026-09-14T00:48:27Z --end 2026-10-05T00:53:06Z -C -D -S -b 02 > TOM_GC1_MC5_S1_DGM__1S_B02.datatakes'
     cmd = f'bcops_maap_query_products --type S1_STA__1S --start 2026-09-14T00:48:27Z --end 2026-10-05T00:53:06Z -C -D -S -b 02 > TOM_GC1_MC5_S1_STA__1S_B02.datatakes'
+    cmd = f'bcops_maap_query_products --type FP_FH__L2A --start 2026-09-14T00:48:27Z --end 2026-10-05T00:53:06Z -C -D -S -b 02'
+    cmd = f'bcops_maap_query_products --type FP_GN__L2A --start 2026-09-14T00:48:27Z --end 2026-10-05T00:53:06Z -C -D -S -b 02'
+    
+    
+    
+    cmd = f'bcops_maap_query_products --type S1_RAW__0S --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 01 > TOM_GC1_MC5_S2_RAW__0S_B01.datatakes'
+    cmd = f'bcops_maap_query_products --type S1_SCS__1S --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 02 > TOM_GC1_MC5_S2_SCS__1S_B02.datatakes'
+    cmd = f'bcops_maap_query_products --type S1_DGM__1S --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 02 > TOM_GC1_MC5_S2_DGM__1S_B02.datatakes'
+    cmd = f'bcops_maap_query_products --type S1_STA__1S --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 02 > TOM_GC1_MC5_S2_STA__1S_B02.datatakes'
+    cmd = f'bcops_maap_query_products --type FP_FH__L2A --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 02'
+    cmd = f'bcops_maap_query_products --type FP_GN__L2A --start 2026-10-05T00:53:06Z --end 2026-10-26T00:48:53Z -C -D -S -b 02'
 
-    
-    
-    
-    cmd = f'bcops_maap_query_products --type S1_STA__1S --start 2026-04-23T00:43:48Z --end 2026-05-14T00:39:22Z -C -D -S -b 02 > TOM_GC1_MC3_S1_STA__1S_B02.datatakes'
-    cmd = f'bcops_maap_query_products --type FP_FH__L2A --start 2026-04-23T00:43:48Z --end 2026-05-14T00:39:22Z -C -D -S -b 02 > TOM_GC1_MC3_S1_FH__L2A_B02.datatakes'
-    cmd = f'bcops_maap_query_products --type FP_GN__L2A --start 2026-04-23T00:43:48Z --end 2026-05-14T00:39:22Z -C -D -S -b 02 > TOM_GC1_MC3_S1_GN__L2A_B02.datatakes'
-    
+
+
     '''
 
 

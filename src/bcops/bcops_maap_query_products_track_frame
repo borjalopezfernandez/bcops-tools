@@ -25,29 +25,11 @@ def query_products(track: str, frame: str, type: str, baseline: str, csv: bool, 
 
     """
     \b
-    Query MAAP catalogue for BIOMASS products by track and frame information within some time interval and product type within the following collections:
+    Query MAAP catalogue for BIOMASS products by track and frame
 
-    curl -X GET -G https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel1a/queryables
-    curl -X GET -G https://catalog.maap.eo.esa.int/catalogue/collections/BiomassLevel2a/queryables
+    S2_SCS__1S
+
     
-    > BiomassLevel0IOC
-    > BiomassLevel1aIOC
-    > BiomassLevel1bIOC
-    > BiomassLevel0
-    > BiomassLevel1a
-    > BiomassLevel1b
-    > BiomassLevel1c
-    > BiomassLevel2a
-    > BiomassAux
-    > BiomassAuxRest
-
-    CSV file naming convention is:
-        bcops_maap_query_products_track_frame_<product_type>_<start_datetime>_<end_datetime>_C<current_datetime>.csv
-
-    CSV file format is:
-        datatake_id, product_type, product_id, sensing_start, sensing_end
-
-    Auxiliary products are datatake-less and no grouping is performed.
     \b
 
     """
