@@ -619,7 +619,8 @@ def _get_patching_abs_orbit(list_patching_dates: list, debug: bool = False):
             
             if rel_orbit == patching_period['relative_orbit']:
                 if debug == True:
-                    logger.info(f'{current.strftime('%Y-%m-%dT%H:%M:%S')} - abs_orbit: {abs_orbit} rel_orbit: {rel_orbit} for {patching_period['station_id']} {patching_period['swath']}')
+                    print(f'_get_patching_abs_orbit => {current.strftime('%Y-%m-%dT%H:%M:%S')} - abs_orbit: {abs_orbit} rel_orbit: {rel_orbit} for {patching_period['station_id']} {patching_period['swath']} {patching_period['date_start']} / {patching_period['date_end']}')
+                    logger.info(f'_get_patching_abs_orbit => {current.strftime('%Y-%m-%dT%H:%M:%S')} - abs_orbit: {abs_orbit} rel_orbit: {rel_orbit} for {patching_period['station_id']} {patching_period['swath']}')
                 patching_abs_orbit              = patching_period.copy()
                 patching_abs_orbit['abs_orbit'] = abs_orbit
                 patching_abs_orbit['date']      = current
@@ -629,7 +630,7 @@ def _get_patching_abs_orbit(list_patching_dates: list, debug: bool = False):
             logger.debug(mjd2000_start)
             logger.debug(f"abs_orbit: {abs_orbit} rel_orbit: {rel_orbit}")
             '''
-            current += timedelta(minutes = 95)        
+            current += timedelta(minutes = 98)        
 
     return sorted(list_patching_abs_orbits, key=lambda x: x['abs_orbit'])
 
